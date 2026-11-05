@@ -8,6 +8,25 @@
 - Как устроено: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Как создавалось с ИИ: [docs/process/JOURNAL.md](docs/process/JOURNAL.md)
 
+## Запуск
+
+```bash
+cp .env.example .env    # и задать пароли
+npm install
+npm run db:start        # в отдельном терминале
+npm run db:migrate && npm run db:seed
+npm run dev
+```
+
 ## Лицензии сторонних материалов
 
-Заполняется по мере добавления библиотек, шрифтов и иконок.
+| Что | Лицензия |
+|---|---|
+| Next.js, React, Tailwind CSS | MIT |
+| Drizzle ORM | Apache-2.0 |
+| drizzle-kit, node-postgres (`pg`), `@node-rs/argon2`, Zod | MIT |
+| Lucide (иконки) | ISC |
+| Golos Text (шрифт, через Fontsource) | SIL Open Font License 1.1 |
+| embedded-postgres (только для разработки), Vitest | MIT |
+
+Логотип «Деканат 24/7» нарисован для проекта и не связан с логотипами реальных вузов.

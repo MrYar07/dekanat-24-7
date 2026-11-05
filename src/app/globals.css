@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/* Токены «Деканата 24/7». Первая версия: полноценную дизайн-систему соберём отдельным этапом. */
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-2: #eef0f7;
+  --text: #141726;
+  --text-muted: #5b6178;
+  --border: #e2e5ef;
+  --brand: #3b4fd8;
+  --brand-ink: #ffffff;
+  --brand-soft: #e7eaff;
+  --ok: #1d8a52;
+  --warn: #b4690e;
+  --danger: #c23a3a;
+  --danger-soft: #fdecec;
+  --notice: #fff4d6;
+  --notice-ink: #6b4d00;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1117;
+    --surface: #181b25;
+    --surface-2: #222634;
+    --text: #eceef6;
+    --text-muted: #a0a6bd;
+    --border: #2c3142;
+    --brand: #7d8cff;
+    --brand-ink: #0f1117;
+    --brand-soft: #262c52;
+    --ok: #4cc488;
+    --warn: #f0a94a;
+    --danger: #ff7a7a;
+    --danger-soft: #3a2024;
+    --notice: #3a3014;
+    --notice-ink: #f5d98a;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-text: var(--text);
+  --color-muted: var(--text-muted);
+  --color-border: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-notice: var(--notice);
+  --color-notice-ink: var(--notice-ink);
+  --font-sans: "Golos Text Variable", system-ui, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Golos Text Variable", system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}

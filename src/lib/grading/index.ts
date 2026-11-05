@@ -1,0 +1,178 @@
+// Расчёт баллов и рейтинга по правилам «Меридиана» (docs/GRADING.md).
+// Чистые функции без доступа к базе: одни и те же на сервере и в калькуляторе.
+// Внутри ничего не округляем — только при показе.
+
+export type GradingSettings = {
+  weights: { work: number; session: number; engagement: number };
+  thresholds: { excellent: number; good: number; satisfactory: number };
+  autoCreditFrom: number;
+  creditCapWithoutAuto: number;
+  teacherBonusMax: number;
+  retakePenalty: number;
+  activityPointsMax: number;
+  activityCoefficient: number;
+};
+
+export const DEFAULT_SETTINGS: GradingSettings = {
+  weights: { work: 0.4, session: 0.45, engagement: 0.15 },
+  thresholds: { excellent: 90, good: 75, satisfactory: 60 },
+  autoCreditFrom: 75,
+  creditCapWithoutAuto: 74,
+  teacherBonusMax: 5,
+  retakePenalty: 10,
+  activityPointsMax: 100,
+  activityCoefficient: 0.04,
+};
+
+const clamp = (x: number, min = 0, max = 100) => Math.min(max, Math.max(min, x));
+const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+
+export type Mark = "excellent" | "good" | "satisfactory" | "fail";
+
+export const MARK_LABEL: Record<Mark, string> = {
+  excellent: "отлично",
+  good: "хорошо",
+  satisfactory: "удовлетворительно",
+  fail: "неудовлетворительно",
+};
+
+export function markFor(score: number, s = DEFAULT_SETTINGS): Mark {
+  if (score >= s.thresholds.excellent) return "excellent";
+  if (score >= s.thresholds.good) return "good";
+  if (score >= s.thresholds.satisfactory) return "satisfactory";
+  return "fail";
+}
+
+/** Работа в триместре: среднее выставленных срезов + бонус преподавателя. Нет срезов — null. */
+export function trimesterWork(checkpoints: number[], bonus = 0, s = DEFAULT_SETTINGS): number | null {
+  if (checkpoints.length === 0) return null;
+  return clamp(mean(checkpoints) + clamp(bonus, 0, s.teacherBonusMax));
+}
+
+export type SessionInput = {
+  kind: "exam" | "credit";
+  /** Балл, полученный на экзамене или зачёте. null — ещё не сдавал. */
+  raw: number | null;
+  retakes?: number;
+};
+
+export type SessionResult = { score: number; auto: boolean; forecast: boolean };
+
+/** Сессия с учётом автомата, потолка зачёта без автомата и штрафа за пересдачи. */
+export function sessionScore(input: SessionInput, work: number | null, s = DEFAULT_SETTINGS): SessionResult | null {
+  if (input.kind === "credit" && work !== null && work >= s.autoCreditFrom) {
+    return { score: work, auto: true, forecast: false };
+  }
+  if (input.raw === null) {
+    return work === null ? null : { score: work, auto: false, forecast: true };
+  }
+  let score = clamp(input.raw);
+  if (input.kind === "credit") score = Math.min(score, s.creditCapWithoutAuto);
+  score = clamp(score - s.retakePenalty * (input.retakes ?? 0));
+  return { score, auto: false, forecast: false };
+}
+
+/** Вовлечённость: половина посещаемость, половина активность. Есть только одно — берём его. */
+export function engagement(attendancePct: number | null, activity: number | null): number | null {
+  if (attendancePct === null && activity === null) return null;
+  if (attendancePct === null) return clamp(activity!);
+  if (activity === null) return clamp(attendancePct);
+  return clamp(0.5 * attendancePct + 0.5 * activity);
+}
+
+export type DisciplineInput = {
+  checkpoints: number[];
+  bonus?: number;
+  session: SessionInput;
+  attendancePct: number | null;
+  activity: number | null;
+};
+
+export type DisciplineResult = {
+  score: number;
+  /** true, если хотя бы одна часть ещё оценена прогнозом. */
+  forecast: boolean;
+  work: number;
+  session: SessionResult;
+  engagement: number;
+};
+
+export function disciplineScore(input: DisciplineInput, s = DEFAULT_SETTINGS): DisciplineResult | null {
+  const work = trimesterWork(input.checkpoints, input.bonus, s);
+  if (work === null) return null;
+
+  const session = sessionScore(input.session, work, s)!;
+  const eng = engagement(input.attendancePct, input.activity);
+  const engValue = eng ?? work;
+
+  const w = s.weights;
+  return {
+    score: clamp(w.work * work + w.session * session.score + w.engagement * engValue),
+    forecast: session.forecast || eng === null || input.activity === null,
+    work,
+    session,
+    engagement: engValue,
+  };
+}
+
+export type TrimesterRating = { rating: number; base: number; bonus: number };
+
+/** Рейтинг триместра: среднее по дисциплинам + бонус активности, не выше 100. */
+export function trimesterRating(
+  disciplineScores: number[],
+  activityPoints: number,
+  s = DEFAULT_SETTINGS,
+): TrimesterRating | null {
+  if (disciplineScores.length === 0) return null;
+  const base = mean(disciplineScores);
+  const bonus = clamp(activityPoints, 0, s.activityPointsMax) * s.activityCoefficient;
+  return { rating: clamp(base + bonus), base, bonus };
+}
+
+/** Годовой рейтинг: среднее рейтингов триместров без бонуса активности. */
+export function yearRating(trimesterBases: number[]): number | null {
+  return trimesterBases.length === 0 ? null : mean(trimesterBases);
+}
+
+export type Needed = { kind: "already" } | { kind: "need"; score: number } | { kind: "impossible" };
+
+function toNeeded(x: number): Needed {
+  if (x <= 0) return { kind: "already" };
+  // Баллы целые: нужен ближайший целый, который точно даёт цель.
+  const score = Math.ceil(x - 1e-9);
+  return score > 100 ? { kind: "impossible" } : { kind: "need", score };
+}
+
+/**
+ * Сколько нужно набрать на каждом оставшемся срезе, чтобы работа в триместре вышла на цель
+ * (например, на автомат). plannedCount — сколько всего срезов по дисциплине.
+ */
+export function neededOnRemainingCheckpoints(
+  checkpoints: number[],
+  plannedCount: number,
+  target: number,
+  bonus = 0,
+  s = DEFAULT_SETTINGS,
+): Needed {
+  const remaining = plannedCount - checkpoints.length;
+  const sum = checkpoints.reduce((a, b) => a + b, 0);
+  const effectiveTarget = target - clamp(bonus, 0, s.teacherBonusMax);
+  if (remaining <= 0) {
+    return sum / Math.max(1, checkpoints.length) >= effectiveTarget ? { kind: "already" } : { kind: "impossible" };
+  }
+  return toNeeded((effectiveTarget * plannedCount - sum) / remaining);
+}
+
+/** Сколько нужно получить на экзамене, чтобы балл дисциплины вышел на цель. */
+export function neededOnExam(
+  work: number,
+  engagementScore: number,
+  target: number,
+  retakes = 0,
+  s = DEFAULT_SETTINGS,
+): Needed {
+  const w = s.weights;
+  const sessionNeeded = (target - w.work * work - w.engagement * engagementScore) / w.session;
+  if (sessionNeeded <= 0) return { kind: "already" };
+  return toNeeded(sessionNeeded + s.retakePenalty * retakes);
+}

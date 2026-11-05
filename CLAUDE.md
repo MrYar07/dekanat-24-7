@@ -30,6 +30,30 @@
 - Новый маршрут с данными пользователя → добавь Playwright-тест «чужой ID возвращает 404».
 - После заметного этапа добавь запись в [docs/process/JOURNAL.md](docs/process/JOURNAL.md): что сделали, ключевой промпт, что пошло не так и как исправили, скриншот. Из журнала собирается отчёт для жюри.
 
+## Next.js 16
+
+@AGENTS.md
+
+Перед кодом с API Next.js читай документацию из `node_modules/next/dist/docs/`: в 16-й версии middleware называется proxy (`src/proxy.ts`), есть и другие изменения.
+
+## Структура
+
+- `src/app/(student)/` — кабинет студента, `src/app/staff/` — кабинет сотрудника, `src/app/login/` — вход.
+- `src/lib/auth/` — пароли, сессии, слой доступа (`dal.ts`: `requireUser`, `requireRole`).
+- `src/lib/data/` — запросы к данным. Функции для студента **не принимают id**: студент берётся из сессии.
+- `src/lib/grading/` — расчёт по GRADING.md, тесты рядом.
+- `src/db/schema.ts` — схема Drizzle, `drizzle/` — миграции, `scripts/seed.ts` — вымышленные данные.
+
 ## Команды
 
-Появятся после создания каркаса проекта.
+```bash
+npm run db:start      # локальный PostgreSQL (держать запущенным)
+npm run db:generate   # миграция из изменений schema.ts
+npm run db:migrate    # применить миграции
+npm run db:seed       # пересоздать вымышленные данные
+npm run dev           # http://localhost:3000
+npm test              # юнит-тесты
+npm run typecheck && npm run lint && npm run build
+```
+
+Пароль тестовых аккаунтов в разработке — `SEED_PASSWORD` в `.env` (файл не коммитится, шаблон — `.env.example`).
