@@ -79,4 +79,4 @@ R триместра    = min(100, среднее(Д) + 0,04 · min(100, Σ ба
 ## Окружения
 
 - **Локально:** проект лежит на NTFS-диске (`E:\Dev\dekanat-24-7`): на exFAT Turbopack не может создать junction-ссылки, а Node неверно читает файлы при сборке. PostgreSQL запускается без Docker через `embedded-postgres` (`npm run db:start`), данные — в `%LOCALAPPDATA%\dekanat-24-7\pgdata`.
-- **Прод:** VPS в AdminVPS (дата-центр в Москве), Ubuntu 24.04, Docker Compose, Caddy с HTTPS, ежедневный бэкап базы. Минимум 2 ГБ RAM; образ приложения собираем не на сервере, а заранее (GitHub Actions или локально), чтобы сборка не упиралась в память VPS.
+- **Прод:** VPS в AdminVPS (дата-центр в Москве), Ubuntu 24.04, Docker Compose: приложение, PostgreSQL 18 и Caddy с HTTPS, ежедневный бэкап базы. Образы собирает GitHub Actions и кладёт в GHCR, сервер их только скачивает: сборка Next.js на VPS с 2 ГБ упиралась бы в память. Пошагово — [DEPLOY.md](DEPLOY.md).

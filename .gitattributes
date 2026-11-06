@@ -1,0 +1,5 @@
+# Скрипты и конфиги для Linux-сервера всегда с LF, даже если репозиторий клонирован на Windows.
+*.sh text eol=lf
+Dockerfile text eol=lf
+deploy/Caddyfile text eol=lf
+deploy/*.yaml text eol=lf

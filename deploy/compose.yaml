@@ -1,0 +1,63 @@
+# Прод на VPS: приложение + PostgreSQL + Caddy (HTTPS). Наружу открыт только Caddy (80/443).
+# Запуск — см. docs/DEPLOY.md. Переменные берутся из deploy/.env (шаблон — .env.example).
+name: dekanat
+
+x-database-url: &database-url postgres://dekanat:${POSTGRES_PASSWORD}@db:5432/dekanat
+
+services:
+  db:
+    image: postgres:18
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dekanat
+      POSTGRES_USER: dekanat
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?задай POSTGRES_PASSWORD в deploy/.env}
+    volumes:
+      # В образе PostgreSQL 18 данные лежат в /var/lib/postgresql/18/docker, монтируем родительский каталог.
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dekanat -d dekanat"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    image: ghcr.io/mryar07/dekanat-24-7:${APP_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Разовые задачи: docker compose run --rm tools db:migrate | db:seed
+  tools:
+    image: ghcr.io/mryar07/dekanat-24-7-tools:${APP_TAG:-latest}
+    profiles: [tools]
+    environment:
+      DATABASE_URL: *database-url
+      SEED_PASSWORD: ${SEED_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?задай SITE_ADDRESS в deploy/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:

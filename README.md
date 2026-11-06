@@ -6,6 +6,7 @@
 
 - Что строим: [docs/PRD.md](docs/PRD.md)
 - Как устроено: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Как выкатить на сервер: [docs/DEPLOY.md](docs/DEPLOY.md)
 - Как создавалось с ИИ: [docs/process/JOURNAL.md](docs/process/JOURNAL.md)
 
 ## Запуск
@@ -28,5 +29,7 @@ npm run dev
 | Lucide (иконки) | ISC |
 | Шрифты Golos Text и PT Serif (через Fontsource) | SIL Open Font License 1.1 |
 | embedded-postgres (только для разработки), Vitest | MIT |
+| PostgreSQL (образ в проде) | PostgreSQL License |
+| Caddy (HTTPS-прокси в проде) | Apache-2.0 |
 
 Логотип «Деканат 24/7» нарисован для проекта и не связан с логотипами реальных вузов.

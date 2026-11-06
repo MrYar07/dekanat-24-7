@@ -1,0 +1,7 @@
+# Caddy сам получает и продлевает HTTPS-сертификат Let's Encrypt для SITE_ADDRESS.
+# Заголовок X-Forwarded-For от клиента Caddy не пропускает, а ставит настоящий IP:
+# на нём держится ограничение попыток входа.
+{$SITE_ADDRESS} {
+	encode zstd gzip
+	reverse_proxy app:3000
+}
