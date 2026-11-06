@@ -1,7 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { ConceptBanner } from "@/components/concept-banner";
-// Golos Text — шрифт с кириллицей под лицензией SIL OFL 1.1, отдаётся с нашего сервера.
+// Golos Text (текст) и PT Serif (заголовки, цифры) — шрифты с кириллицей под SIL OFL 1.1, отдаются с нашего сервера.
 import "@fontsource-variable/golos-text";
+import "@fontsource/pt-serif/400.css";
+import "@fontsource/pt-serif/400-italic.css";
+import "@fontsource/pt-serif/700.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,8 +17,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6f7fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f1117" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f3ea" },
+    { media: "(prefers-color-scheme: dark)", color: "#16140f" },
   ],
 };
 

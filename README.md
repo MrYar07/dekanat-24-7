@@ -26,7 +26,7 @@ npm run dev
 | Drizzle ORM | Apache-2.0 |
 | drizzle-kit, node-postgres (`pg`), `@node-rs/argon2`, Zod | MIT |
 | Lucide (иконки) | ISC |
-| Шрифты Golos Text, Unbounded, Manrope, PT Serif (через Fontsource) | SIL Open Font License 1.1 |
+| Шрифты Golos Text и PT Serif (через Fontsource) | SIL Open Font License 1.1 |
 | embedded-postgres (только для разработки), Vitest | MIT |
 
 Логотип «Деканат 24/7» нарисован для проекта и не связан с логотипами реальных вузов.

@@ -25,9 +25,9 @@ export function StudentNav() {
   return (
     <nav
       aria-label="Разделы кабинета"
-      className="border-border bg-surface fixed inset-x-0 bottom-0 z-20 border-t pb-[env(safe-area-inset-bottom)] md:static md:w-56 md:shrink-0 md:border-t-0 md:bg-transparent md:pb-0"
+      className="border-border bg-bg fixed inset-x-0 bottom-0 z-20 border-t pb-[env(safe-area-inset-bottom)] md:static md:w-56 md:shrink-0 md:border-t-0 md:bg-transparent md:pb-0"
     >
-      <ul className="mx-auto grid max-w-lg grid-cols-5 md:max-w-none md:grid-cols-1 md:gap-1">
+      <ul className="mx-auto grid max-w-lg grid-cols-5 md:max-w-none md:grid-cols-1 md:gap-0.5">
         {STUDENT_NAV.map(({ href, label, icon: Icon }) => {
           const active = isActive(pathname, href);
           return (
@@ -35,8 +35,10 @@ export function StudentNav() {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`flex flex-col items-center gap-0.5 px-1 py-2 text-[11px] md:flex-row md:gap-3 md:rounded-xl md:px-3 md:py-2.5 md:text-sm ${
-                  active ? "text-brand md:bg-brand-soft font-medium" : "text-muted hover:text-text"
+                className={`flex flex-col items-center gap-0.5 px-1 py-2 text-[11px] md:flex-row md:gap-3 md:border-l-2 md:px-3 md:py-2.5 md:text-sm ${
+                  active
+                    ? "text-brand md:border-brand md:bg-brand-soft font-semibold"
+                    : "text-muted hover:text-text md:border-transparent"
                 }`}
               >
                 <Icon aria-hidden="true" className="size-6 md:size-5" strokeWidth={active ? 2.2 : 1.8} />

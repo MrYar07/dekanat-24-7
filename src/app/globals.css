@@ -1,41 +1,49 @@
 @import "tailwindcss";
 
-/* Токены «Деканата 24/7». Первая версия: полноценную дизайн-систему соберём отдельным этапом. */
+/* Дизайн-система «Зачётка»: бумага, чернила и печать.
+   Красный — только для ошибок и переносов. Печать «готово» фиолетовая, как настоящая печать деканата.
+   Витрина компонентов — /design-lab (только в режиме разработки). */
 :root {
-  --bg: #f6f7fb;
-  --surface: #ffffff;
-  --surface-2: #eef0f7;
-  --text: #141726;
-  --text-muted: #5b6178;
-  --border: #e2e5ef;
-  --brand: #3b4fd8;
-  --brand-ink: #ffffff;
-  --brand-soft: #e7eaff;
-  --ok: #1d8a52;
-  --warn: #b4690e;
-  --danger: #c23a3a;
-  --danger-soft: #fdecec;
-  --notice: #fff4d6;
-  --notice-ink: #6b4d00;
+  --bg: #f7f3ea;
+  --surface: #fffdf8;
+  --surface-2: #efe8da;
+  --text: #1f1b16;
+  --text-muted: #6b6257;
+  --border: #d9d0bf;
+  --brand: #1d3a8a;
+  --brand-ink: #fffdf8;
+  --brand-soft: #e4e8f5;
+  --ok: #2f6b3a;
+  --ok-soft: #e3efe2;
+  --warn: #8a5300;
+  --warn-soft: #f6ead2;
+  --danger: #b3261e;
+  --danger-soft: #f8e3df;
+  --stamp: #5a3ea6;
+  --notice: #ece4d3;
+  --notice-ink: #4d4336;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0f1117;
-    --surface: #181b25;
-    --surface-2: #222634;
-    --text: #eceef6;
-    --text-muted: #a0a6bd;
-    --border: #2c3142;
-    --brand: #7d8cff;
-    --brand-ink: #0f1117;
-    --brand-soft: #262c52;
-    --ok: #4cc488;
-    --warn: #f0a94a;
-    --danger: #ff7a7a;
-    --danger-soft: #3a2024;
-    --notice: #3a3014;
-    --notice-ink: #f5d98a;
+    --bg: #16140f;
+    --surface: #1e1b15;
+    --surface-2: #2a251c;
+    --text: #efe9dc;
+    --text-muted: #b0a796;
+    --border: #3a3428;
+    --brand: #a9bcff;
+    --brand-ink: #16140f;
+    --brand-soft: #232a44;
+    --ok: #8fd19b;
+    --ok-soft: #1f2e20;
+    --warn: #e8b766;
+    --warn-soft: #33281a;
+    --danger: #ff8a7a;
+    --danger-soft: #3a1f1b;
+    --stamp: #c3b0ff;
+    --notice: #2a251c;
+    --notice-ink: #d8cfbd;
   }
 }
 
@@ -50,12 +58,16 @@
   --color-brand-ink: var(--brand-ink);
   --color-brand-soft: var(--brand-soft);
   --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
   --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
+  --color-stamp: var(--stamp);
   --color-notice: var(--notice);
   --color-notice-ink: var(--notice-ink);
   --font-sans: "Golos Text Variable", system-ui, sans-serif;
+  --font-serif: "PT Serif", Georgia, serif;
 }
 
 html {

@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Bell, CalendarDays, FileText, TrendingUp } from "lucide-react";
-import { EmptyState, PageTitle } from "@/components/empty-state";
+import { buttonClass } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/states";
+import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getMyProfile } from "@/lib/data/student";
 
 export const metadata: Metadata = { title: "Сегодня" };
@@ -26,22 +29,42 @@ export default async function TodayPage() {
 
   return (
     <>
-      <PageTitle hint={<span className="first-letter:uppercase">{today}</span>}>
-        {greeting(hour)}, {profile.firstName}!
+      <PageTitle eyebrow={today}>
+        {greeting(hour)}, {profile.firstName}.
       </PageTitle>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <EmptyState icon={CalendarDays} title="Расписание скоро появится">
-          Здесь будет следующая пара, аудитория и переносы.
-        </EmptyState>
-        <EmptyState icon={TrendingUp} title="Новых баллов пока нет">
-          Как только преподаватель поставит балл за срез, он появится здесь.
-        </EmptyState>
-        <EmptyState icon={FileText} title="Активных заявок нет">
-          Справку можно заказать в разделе «Справки».
-        </EmptyState>
-        <EmptyState icon={Bell} title="Объявлений нет">
-          Новости деканата и напоминания о сроках будут здесь.
-        </EmptyState>
+      <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
+        <section>
+          <SectionTitle>Дальше по расписанию</SectionTitle>
+          <EmptyState icon={CalendarDays} title="Расписание скоро появится">
+            Здесь будет следующая пара, аудитория и переносы.
+          </EmptyState>
+        </section>
+        <section>
+          <SectionTitle>Ведомость</SectionTitle>
+          <EmptyState icon={TrendingUp} title="Новых баллов пока нет">
+            Как только преподаватель поставит балл за срез, он появится здесь.
+          </EmptyState>
+        </section>
+        <section>
+          <SectionTitle>Справки</SectionTitle>
+          <EmptyState
+            icon={FileText}
+            title="Активных заявок нет"
+            action={
+              <Link href="/requests" className={buttonClass("secondary")}>
+                Заказать справку
+              </Link>
+            }
+          >
+            Справка об обучении готовится за минуту.
+          </EmptyState>
+        </section>
+        <section>
+          <SectionTitle>Объявления</SectionTitle>
+          <EmptyState icon={Bell} title="Объявлений нет">
+            Новости деканата и напоминания о сроках будут здесь.
+          </EmptyState>
+        </section>
       </div>
     </>
   );

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { CalendarDays } from "lucide-react";
-import { EmptyState, PageTitle } from "@/components/empty-state";
+import { EmptyState } from "@/components/ui/states";
+import { PageTitle } from "@/components/ui/typography";
 
 export const metadata: Metadata = { title: "Расписание" };
 
