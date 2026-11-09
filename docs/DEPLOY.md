@@ -14,26 +14,39 @@ VPS (Москва): Caddy :443 ──▶ app :3000 ──▶ PostgreSQL 18
 
 ## 1. Сервер
 
-- AdminVPS, дата-центр в Москве, **Ubuntu 24.04**, от **2 ГБ RAM** и 20 ГБ диска.
-- При заказе добавь свой публичный SSH-ключ. Он лежит в `C:\Users\<ты>\.ssh\id_ed25519.pub`, это одна строка `ssh-ed25519 AAAA…`.
-  Если сервер уже выдан с паролем, добавь ключ сам одной командой и один раз введи пароль:
-  ```powershell
-  type $env:USERPROFILE\.ssh\id_ed25519.pub | ssh root@IP "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
-  ```
-- Пароль сервера никому не пересылай, в том числе ИИ: дальше вход только по ключу.
+Текущий прод: **https://5-35-126-36.sslip.io**. AdminVPS, тариф Micro (2 vCPU, 4 ГБ RAM, 60 ГБ NVMe), Москва, Ubuntu 24.04, без панели управления.
+
+**Ключ деплоя.** Отдельный ключ `~/.ssh/dekanat_deploy` без парольной фразы, чтобы ИИ-агент мог работать с сервером без человека. Основной ключ автора защищён фразой, и агент не может им воспользоваться. В `~/.ssh/config` есть короткое имя:
+
+```
+Host dekanat
+    HostName 5.35.126.36
+    User root
+    IdentityFile ~/.ssh/dekanat_deploy
+    IdentitiesOnly yes
+```
+
+Ключ на сервер добавляется один раз, с паролем root из панели хостера. Пароль вводит человек в своём терминале:
+
+```powershell
+ssh-keygen -t ed25519 -N '""' -C dekanat-deploy -f $env:USERPROFILE\.ssh\dekanat_deploy
+Get-Content $env:USERPROFILE\.ssh\dekanat_deploy.pub | ssh dekanat "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+```
+
+После настройки вход по паролю отключён (`/etc/ssh/sshd_config.d/00-dekanat.conf`). Если ключ потерян, остаётся консоль VNC в панели AdminVPS.
 
 ## 2. Первичная настройка (один раз)
 
 ```bash
-ssh root@IP "curl -fsSL https://raw.githubusercontent.com/MrYar07/dekanat-24-7/main/deploy/server-setup.sh | bash"
+ssh dekanat "curl -fsSL https://raw.githubusercontent.com/MrYar07/dekanat-24-7/main/deploy/server-setup.sh | bash"
 ```
 
-Скрипт ставит Docker из репозитория Ubuntu и настраивает зеркало Docker Hub (на случай блокировки из России). Ещё он добавляет swap 2 ГБ, включает файрвол (22, 80, 443) и автоматические обновления безопасности, клонирует репозиторий в `/opt/dekanat` и ставит ежедневный бэкап базы.
+Скрипт ставит Docker из репозитория Ubuntu и настраивает зеркало Docker Hub (на случай блокировки из России). Ещё он добавляет swap 2 ГБ (если у хостера его нет), включает файрвол (22, 80, 443) и автоматические обновления безопасности, клонирует репозиторий в `/opt/dekanat` и ставит ежедневный бэкап базы.
 
 ## 3. Секреты (один раз, только на сервере)
 
 ```bash
-ssh root@IP
+ssh dekanat
 cd /opt/dekanat/deploy && cp .env.example .env
 sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 24)/" .env
 nano .env    # SITE_ADDRESS=1-2-3-4.sslip.io (IP через дефисы) и SEED_PASSWORD
@@ -48,6 +61,8 @@ docker compose -f /opt/dekanat/deploy/compose.yaml run --rm tools db:seed   # в
 ```
 
 `db:seed` **пересоздаёт** все данные. Запускать при первом деплое и когда нужно вернуть демо к исходному виду.
+
+После первого запуска `server-setup.sh` может попросить перезагрузку (обновилось ядро): `ssh dekanat systemctl reboot`.
 
 ## Обновление и откат
 
