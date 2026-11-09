@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarDays, FileText, Home, TrendingUp, UserRound, type LucideIcon } from "lucide-react";
+import { CalendarDays, FileText, Home, TrendingUp, UserRound, type LucideIcon, Bell } from "lucide-react";
 
 // short — подпись в нижней панели телефона, где на пункт приходится ~70 px.
 type Item = { href: string; label: string; short?: string; icon: LucideIcon };
@@ -20,7 +20,7 @@ function isActive(pathname: string, href: string) {
 }
 
 /** Нижняя панель на телефоне, боковая колонка на широком экране. */
-export function StudentNav() {
+export function StudentNav({ unread = 0 }: { unread?: number }) {
   const pathname = usePathname();
 
   return (
@@ -49,6 +49,27 @@ export function StudentNav() {
             </li>
           );
         })}
+        {/* На телефоне уведомления — колокольчик в шапке, на десктопе — отдельный пункт под разделами. */}
+        <li className="border-border hidden md:mt-3 md:block md:border-t md:pt-3">
+          <Link
+            href="/notifications"
+            aria-current={isActive(pathname, "/notifications") ? "page" : undefined}
+            className={`flex items-center gap-3 border-l-2 px-3 py-2.5 text-sm ${
+              isActive(pathname, "/notifications")
+                ? "text-brand border-brand bg-brand-soft font-semibold"
+                : "text-muted hover:text-text border-transparent"
+            }`}
+          >
+            <Bell aria-hidden="true" className="size-5" strokeWidth={1.8} />
+            <span className="flex-1 truncate">Уведомления</span>
+            {unread > 0 && (
+              <span className="bg-brand text-brand-ink rounded-full px-1.5 text-xs leading-5 font-bold tabular-nums">
+                {unread}
+                <span className="sr-only"> непрочитанных</span>
+              </span>
+            )}
+          </Link>
+        </li>
       </ul>
     </nav>
   );

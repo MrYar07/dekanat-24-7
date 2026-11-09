@@ -11,6 +11,8 @@ export type GradingSettings = {
   retakePenalty: number;
   activityPointsMax: number;
   activityCoefficient: number;
+  /** Пороги привилегий: стипендия и отметка — по рейтингу триместра, гранты — по годовому, без пересдач. */
+  privileges: { scholarshipFrom: number; topFrom: number; grant25From: number; grant50From: number };
 };
 
 export const DEFAULT_SETTINGS: GradingSettings = {
@@ -22,6 +24,7 @@ export const DEFAULT_SETTINGS: GradingSettings = {
   retakePenalty: 10,
   activityPointsMax: 100,
   activityCoefficient: 0.04,
+  privileges: { scholarshipFrom: 85, topFrom: 80, grant25From: 90, grant50From: 95 },
 };
 
 const clamp = (x: number, min = 0, max = 100) => Math.min(max, Math.max(min, x));
@@ -175,4 +178,33 @@ export function neededOnExam(
   const sessionNeeded = (target - w.work * work - w.engagement * engagementScore) / w.session;
   if (sessionNeeded <= 0) return { kind: "already" };
   return toNeeded(sessionNeeded + s.retakePenalty * retakes);
+}
+
+export type RatingForecast = TrimesterRating & {
+  /** true, если хотя бы одна дисциплина считается прогнозом (сессии ещё не было). */
+  forecast: boolean;
+  /** Сколько дисциплин учтено: без срезов дисциплина в рейтинг пока не входит. */
+  counted: number;
+};
+
+/** Рейтинг триместра по всем дисциплинам студента: то, что видно на «Сегодня» и в «Успеваемости». */
+export function ratingForecast(
+  courses: DisciplineInput[],
+  activityPoints: number,
+  s = DEFAULT_SETTINGS,
+): RatingForecast | null {
+  const results = courses.map((c) => disciplineScore(c, s)).filter((r) => r !== null);
+  const rating = trimesterRating(
+    results.map((r) => r.score),
+    activityPoints,
+    s,
+  );
+  if (!rating) return null;
+  return { ...rating, forecast: results.some((r) => r.forecast), counted: results.length };
+}
+
+/** Процент посещаемости: уважительные пропуски не считаются. Нет отметок — null. */
+export function attendancePercent(present: number, absent: number): number | null {
+  const total = present + absent;
+  return total === 0 ? null : (present / total) * 100;
 }

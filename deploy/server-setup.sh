@@ -41,13 +41,17 @@ ufw --force enable
 echo "==> Автоматические обновления безопасности"
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
-echo "==> Код деплоя из публичного репозитория и ежедневный бэкап базы"
+echo "==> Код деплоя из публичного репозитория, ежедневный бэкап и пересид демо"
 if [ ! -d /opt/dekanat/.git ]; then
   git clone https://github.com/MrYar07/dekanat-24-7.git /opt/dekanat
 fi
 mkdir -p /opt/dekanat/deploy/backups
 cat > /etc/cron.d/dekanat-backup <<'CRON'
 30 3 * * * root /opt/dekanat/deploy/backup.sh >> /var/log/dekanat-backup.log 2>&1
+CRON
+# 01:00 UTC = 04:00 МСК: демо-данные пересоздаются после бэкапа, когда сайтом никто не пользуется.
+cat > /etc/cron.d/dekanat-reseed <<'CRON'
+0 1 * * * root /opt/dekanat/deploy/reseed.sh >> /var/log/dekanat-reseed.log 2>&1
 CRON
 
 echo "Готово. Дальше: создать /opt/dekanat/deploy/.env и запустить update.sh (docs/DEPLOY.md)."

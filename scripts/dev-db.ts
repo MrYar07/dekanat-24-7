@@ -17,6 +17,9 @@ const pg = new EmbeddedPostgres({
   password: decodeURIComponent(url.password),
   port: Number(url.port),
   persistent: true,
+  // Без явной кодировки initdb на русской Windows создаёт кластер в WIN1251,
+  // и символы вроде «→» не сохраняются. На сервере база в UTF-8 — локально так же.
+  initdbFlags: ["--encoding=UTF8", "--locale=C"],
 });
 
 async function main() {

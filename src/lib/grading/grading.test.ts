@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  attendancePercent,
   disciplineScore,
   engagement,
+  ratingForecast,
+  type DisciplineInput,
   markFor,
   neededOnExam,
   neededOnRemainingCheckpoints,
@@ -139,5 +142,38 @@ describe("калькулятор «что нужно, чтобы…»", () => {
   });
   it("пересдача повышает нужный балл", () => {
     expect(neededOnExam(88, 90, 90, 1)).toEqual({ kind: "impossible" });
+  });
+});
+
+describe("прогноз рейтинга", () => {
+  const course = (checkpoints: number[], attendancePct: number | null = 100): DisciplineInput => ({
+    checkpoints,
+    session: { kind: "exam", raw: null },
+    attendancePct,
+    activity: null,
+  });
+
+  it("без сессии — прогноз: работа вместо сессии, посещаемость вместо вовлечённости", () => {
+    const r = ratingForecast([course([80, 90], 100)], 0)!;
+    // 0,40·85 + 0,45·85 + 0,15·100 = 87,25
+    expect(r.rating).toBeCloseTo(87.25);
+    expect(r.forecast).toBe(true);
+    expect(r.counted).toBe(1);
+  });
+
+  it("дисциплины без срезов не учитываются, бонус активности добавляется", () => {
+    const r = ratingForecast([course([80, 90], 100), course([])], 50)!;
+    expect(r.counted).toBe(1);
+    expect(r.bonus).toBeCloseTo(2);
+    expect(r.rating).toBeCloseTo(89.25);
+  });
+
+  it("нет ни одной оценённой дисциплины — null", () => {
+    expect(ratingForecast([course([])], 0)).toBeNull();
+  });
+
+  it("посещаемость без уважительных пропусков", () => {
+    expect(attendancePercent(18, 2)).toBe(90);
+    expect(attendancePercent(0, 0)).toBeNull();
   });
 });
