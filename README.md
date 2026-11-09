@@ -4,6 +4,8 @@
 
 > **Не официальный сервис. Все данные вымышлены.**
 
+**Демо:** https://5-35-126-36.sslip.io — тестовые аккаунты `student1`, `student2`, `teacher`, `dean`. Пароль — в комментарии к конкурсной работе.
+
 - Что строим: [docs/PRD.md](docs/PRD.md)
 - Как устроено: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - Как выкатить на сервер: [docs/DEPLOY.md](docs/DEPLOY.md)
