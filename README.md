@@ -21,6 +21,8 @@ npm run db:migrate && npm run db:seed
 npm run dev
 ```
 
+Проверки: `npm test` (юнит-тесты), `npm run test:e2e` (Playwright в установленном Chrome; нужны запущенная база и свежий сид).
+
 ## Лицензии сторонних материалов
 
 | Что | Лицензия |
@@ -30,8 +32,12 @@ npm run dev
 | drizzle-kit, node-postgres (`pg`), `@node-rs/argon2`, Zod | MIT |
 | Lucide (иконки) | ISC |
 | Шрифты Golos Text и PT Serif (через Fontsource) | SIL Open Font License 1.1 |
+| `pdf-lib`, `@pdf-lib/fontkit` (PDF справок), `qrcode` (QR-код проверки) | MIT |
 | embedded-postgres (только для разработки), Vitest | MIT |
+| Playwright (только для тестов) | Apache-2.0 |
 | PostgreSQL (образ в проде) | PostgreSQL License |
 | Caddy (HTTPS-прокси в проде) | Apache-2.0 |
+
+Файлы PT Serif для PDF лежат в `assets/fonts/` вместе с текстом лицензии `OFL.txt`.
 
 Логотип «Деканат 24/7» нарисован для проекта и не связан с логотипами реальных вузов.

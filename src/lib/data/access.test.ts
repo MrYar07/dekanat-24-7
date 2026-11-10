@@ -7,7 +7,8 @@ import { describe, expect, it } from "vitest";
 
 const dir = __dirname;
 // Общие для всех данные, не привязанные к пользователю.
-const PUBLIC = new Set(["getGradingSettings"]);
+// verifyDocument — публичная проверка справки по QR-коду, без входа и с минимумом данных.
+const PUBLIC = new Set(["verifyDocument"]);
 
 const files = readdirSync(dir).filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"));
 const fns = files.flatMap((file) => {
@@ -25,8 +26,10 @@ describe("слой данных студента", () => {
     expect(fns.length).toBeGreaterThan(2);
   });
 
-  it.each(fns.map((f) => [`${f.file}: ${f.name}`, f] as const))("%s — без id в параметрах", (_, f) => {
-    expect(f.params).not.toMatch(/id|user|student/i);
+  it.each(fns.map((f) => [`${f.file}: ${f.name}`, f] as const))("%s — без id пользователя в параметрах", (_, f) => {
+    expect(f.params).not.toMatch(/user|student/i);
+    // id объекта (заявки) допустим, только если выборка ограничена студентом из сессии.
+    if (/id/i.test(f.params)) expect(f.body).toMatch(/eq\((requests|issuedDocuments)\.studentId, user\.id\)/);
   });
 
   it.each(fns.filter((f) => !PUBLIC.has(f.name)).map((f) => [`${f.file}: ${f.name}`, f] as const))(

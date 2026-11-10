@@ -118,7 +118,7 @@ async function main() {
 
   await db.transaction(async (tx) => {
     await tx.execute(sql`TRUNCATE
-      notifications, announcements, request_events, requests, document_types,
+      notifications, announcements, issued_documents, request_events, requests, document_types,
       achievements, achievement_kinds, grading_settings,
       course_results, attendance, checkpoint_scores, checkpoints, lesson_changes, timetable_slots, courses, disciplines, terms,
       login_attempts, sessions, student_profiles, staff_profiles, users, groups, programs, faculties
@@ -350,24 +350,42 @@ async function main() {
         .values({ studentId, typeId: typeId(code), status: last.status, payload, createdAt: ago(history[0].hoursAgo), updatedAt: ago(last.hoursAgo) })
         .returning();
       await tx.insert(s.requestEvents).values(history.map((h) => ({ requestId: r.id, status: h.status, note: h.note ?? null, createdAt: ago(h.hoursAgo) })));
+      return { id: r.id, issuedAt: ago(history[0].hoursAgo) };
     }
 
-    await request(student1.id, "study", { purpose: "по месту работы родителей", copies: 1 }, [
+    // Готовые справки — с выданным документом и кодом проверки, как если бы их заказали в кабинете.
+    const studentSnapshot = (who: "student1" | "student2") =>
+      who === "student1"
+        ? { lastName: "Северова", firstName: "Алина", middleName: "Игоревна", recordBookNumber: "М-24-0417", faculty: fge.name, programCode: econ.code, program: econ.name, group: ge2.name, course: ge2.course, isPaid: true }
+        : { lastName: "Ветров", firstName: "Матвей", middleName: "Андреевич", recordBookNumber: "М-23-1182", faculty: fmp.name, programCode: polit.code, program: polit.name, group: mp3.name, course: mp3.course, isPaid: false };
+    async function issue(r: { id: string; issuedAt: Date }, studentId: string, who: "student1" | "student2", purpose: string) {
+      await tx.insert(s.issuedDocuments).values({
+        requestId: r.id,
+        studentId,
+        code: randomBytes(16).toString("base64url"),
+        snapshot: { kind: "study", student: studentSnapshot(who), purpose },
+        issuedAt: r.issuedAt,
+      });
+    }
+
+    const study1 = await request(student1.id, "study", { purpose: "по месту работы родителей" }, [
       { status: "submitted", hoursAgo: 26 },
       { status: "ready", hoursAgo: 26, note: "Сформирована автоматически" },
     ]);
+    await issue(study1, student1.id, "student1", "по месту работы родителей");
     await request(student1.id, "recredit", { discipline: "Основы программирования на Python", source: "онлайн-курс, 72 часа" }, [
       { status: "submitted", hoursAgo: 50 },
       { status: "in_review", hoursAgo: 28, note: "Передано на кафедру количественных методов" },
     ]);
-    await request(student2.id, "scholarship", { period: "сентябрь — октябрь", copies: 1 }, [
+    const scholarship2 = await request(student2.id, "scholarship", { period: "сентябрь — октябрь", copies: 1 }, [
       { status: "submitted", hoursAgo: 4 },
     ]);
-    await request(student2.id, "study", { purpose: "в военкомат", copies: 2 }, [
+    const study2 = await request(student2.id, "study", { purpose: "в военный комиссариат" }, [
       { status: "submitted", hoursAgo: 24 * 12 },
       { status: "ready", hoursAgo: 24 * 12, note: "Сформирована автоматически" },
       { status: "issued", hoursAgo: 24 * 11, note: "Скачана в PDF" },
     ]);
+    await issue(study2, student2.id, "student2", "в военный комиссариат");
 
     // Объявления и уведомления
 
@@ -385,11 +403,11 @@ async function main() {
     await tx.insert(s.notifications).values([
       notify(student1.id, "change", "Перенос: Эконометрика", `${formatDay(econometricsDate)} → ${formatDay(addDays(econometricsDate, 2))}, 13:00, ауд. 305`, "/schedule", 5),
       notify(student1.id, "score", "Новый балл: Макроэкономика", "Срез 2 — 92", "/grades", 24),
-      notify(student1.id, "request", "Справка об обучении готова", "Можно скачать PDF с QR-кодом", "/requests", 26, true),
+      notify(student1.id, "request", "Справка об обучении готова", "Можно скачать PDF с QR-кодом", `/requests/${study1.id}`, 26, true),
       notify(student1.id, "announcement", "Третий срез через две недели", "Даты в объявлениях", "/", 30, true),
       notify(student2.id, "change", "Отмена: Региональные конфликты", `${formatDay(conflictsDate)}, материалы в почте группы`, "/schedule", 3),
       notify(student2.id, "score", "Новый балл: Английский язык", "Срез 2 — 70", "/grades", 24),
-      notify(student2.id, "request", "Заявка принята: справка о стипендии", "Срок — до 2 рабочих дней", "/requests", 4, true),
+      notify(student2.id, "request", "Заявка принята: справка о стипендии", "Срок — до 2 рабочих дней", `/requests/${scholarship2.id}`, 4, true),
     ]);
 
     for (const [who, g, points] of [["student1", ge, 40], ["student2", mp, 30]] as const) {

@@ -30,6 +30,8 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   serverExternalPackages: ["@node-rs/argon2"],
+  // Шрифты для PDF читаются с диска во время запроса: явно кладём их в standalone-сборку.
+  outputFileTracingIncludes: { "/**": ["./assets/fonts/*"] },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

@@ -12,7 +12,9 @@ import {
   jsonb,
   smallint,
   primaryKey,
+  serial,
 } from "drizzle-orm/pg-core";
+import type { DocumentSnapshot } from "../lib/documents/types";
 import type { GradingSettings } from "../lib/grading";
 
 export const roleEnum = pgEnum("role", ["student", "teacher", "dean_office"]);
@@ -330,6 +332,31 @@ export const requestEvents = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("request_events_request_idx").on(t.requestId, t.createdAt)],
+);
+
+/**
+ * Выданный документ (справка, выписка). code — случайные 128 бит в base64url, по нему публичная
+ * проверка подлинности. snapshot — данные на момент выдачи: из них строятся PDF и страница проверки.
+ */
+export const issuedDocuments = pgTable(
+  "issued_documents",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    number: serial("number").notNull(),
+    requestId: uuid("request_id")
+      .notNull()
+      .unique()
+      .references(() => requests.id, { onDelete: "cascade" }),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    code: text("code").notNull().unique(),
+    snapshot: jsonb("snapshot").$type<DocumentSnapshot>().notNull(),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+    /** Отозван деканатом: проверка покажет «недействительна». */
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  },
+  (t) => [index("issued_documents_student_idx").on(t.studentId)],
 );
 
 // Объявления и уведомления

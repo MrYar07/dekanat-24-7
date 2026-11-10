@@ -55,6 +55,7 @@ npm run db:migrate    # применить миграции
 npm run db:seed       # пересоздать вымышленные данные
 npm run dev           # http://localhost:3000
 npm test              # юнит-тесты
+npm run test:e2e      # Playwright: доступ к чужим данным, сценарии жюри (нужны база, сид и Chrome)
 npm run typecheck && npm run lint && npm run build
 ```
 

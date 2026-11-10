@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Check, Circle, TrendingUp } from "lucide-react";
+import Link from "next/link";
+import { Check, Circle, FileText, TrendingUp } from "lucide-react";
 import { Callout } from "@/components/ui/callout";
 import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
@@ -33,7 +34,7 @@ function hint(c: Course, s: GradingSettings): { lead: string; text: string } | n
         text: `${remaining === 1 ? `на срезе ${nextCp?.number}` : `в среднем на оставшихся ${remaining} срезах`} нужно ${n.score} и больше. Без автомата за зачёт можно получить не больше ${s.creditCapWithoutAuto}.`,
       };
     }
-    return { lead: "Автомата не будет.", text: `Готовьтесь к зачёту: за него можно получить до ${s.creditCapWithoutAuto} баллов.` };
+    return { lead: "Автомата не будет.", text: `Готовься к зачёту: за него можно получить до ${s.creditCapWithoutAuto} баллов.` };
   }
 
   if (!c.result) return null;
@@ -173,6 +174,13 @@ export default async function GradesPage() {
                 «Меридиана» — подробнее в правилах оценивания.
               </p>
             )}
+            <Link
+              href="/requests/new/rating"
+              className="text-brand mt-4 inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
+            >
+              <FileText className="size-4" aria-hidden="true" />
+              Выписка рейтинга в PDF
+            </Link>
           </Card>
 
           <div>

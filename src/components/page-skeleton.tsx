@@ -1,6 +1,8 @@
 import { Skeleton } from "@/components/ui/states";
 
-export default function Loading() {
+/** Заглушка загрузки раздела. Подключается через loading.tsx только в тех разделах,
+ * где нет страниц с notFound(): иначе потоковая отдача начнётся раньше и 404 станет 200. */
+export function PageSkeleton() {
   return (
     <div aria-busy="true" aria-label="Загрузка">
       <Skeleton className="mb-2 h-4 w-40" />

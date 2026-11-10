@@ -26,7 +26,9 @@ import { requireRole } from "@/lib/auth/dal";
 import {
   DEFAULT_SETTINGS,
   attendancePercent,
+  MARK_LABEL,
   disciplineScore,
+  markFor,
   nextGoal,
   privilegesFor,
   ratingForecast,
@@ -395,5 +397,27 @@ export async function getGrades(at: Date = new Date()) {
     privileges: perf.rating ? privilegesFor(perf.rating, me.isPaid, perf.settings) : [],
     goal: perf.rating ? nextGoal(perf.rating, me.isPaid, perf.settings) : null,
     achievements: achievementRows,
+  };
+}
+
+/** Данные для выписки рейтинга: только дисциплины, по которым уже есть балл. */
+export async function getMyRatingSnapshot() {
+  const ctx = await loadStudent();
+  const perf = await loadPerformance(ctx);
+  if (!ctx.term || !perf.rating) return null;
+  return {
+    term: ctx.term.name,
+    rows: perf.courses
+      .filter((c) => c.result)
+      .map((c) => ({
+        discipline: c.discipline,
+        assessment: c.assessment,
+        score: Math.round(c.result!.score * 10) / 10,
+        mark: MARK_LABEL[markFor(c.result!.score, perf.settings)],
+      })),
+    rating: perf.rating.rating,
+    base: perf.rating.base,
+    bonus: perf.rating.bonus,
+    forecast: perf.rating.forecast,
   };
 }
