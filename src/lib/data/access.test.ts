@@ -28,8 +28,10 @@ describe("слой данных студента", () => {
 
   it.each(fns.map((f) => [`${f.file}: ${f.name}`, f] as const))("%s — без id пользователя в параметрах", (_, f) => {
     expect(f.params).not.toMatch(/user|student/i);
-    // id объекта (заявки) допустим, только если выборка ограничена студентом из сессии.
-    if (/id/i.test(f.params)) expect(f.body).toMatch(/eq\((requests|issuedDocuments)\.studentId, user\.id\)/);
+    // id объекта (заявки, уведомления) допустим, только если выборка ограничена пользователем из сессии.
+    if (/id/i.test(f.params)) {
+      expect(f.body).toMatch(/eq\(((requests|issuedDocuments)\.studentId|notifications\.userId), user\.id\)/);
+    }
   });
 
   it.each(fns.filter((f) => !PUBLIC.has(f.name)).map((f) => [`${f.file}: ${f.name}`, f] as const))(

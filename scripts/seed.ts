@@ -373,7 +373,7 @@ async function main() {
       { status: "ready", hoursAgo: 26, note: "Сформирована автоматически" },
     ]);
     await issue(study1, student1.id, "student1", "по месту работы родителей");
-    await request(student1.id, "recredit", { discipline: "Основы программирования на Python", source: "онлайн-курс, 72 часа" }, [
+    const recredit1 = await request(student1.id, "recredit", { discipline: "Основы программирования на Python", source: "онлайн-курс, 72 часа" }, [
       { status: "submitted", hoursAgo: 50 },
       { status: "in_review", hoursAgo: 28, note: "Передано на кафедру количественных методов" },
     ]);
@@ -405,9 +405,14 @@ async function main() {
       notify(student1.id, "score", "Новый балл: Макроэкономика", "Срез 2 — 92", "/grades", 24),
       notify(student1.id, "request", "Справка об обучении готова", "Можно скачать PDF с QR-кодом", `/requests/${study1.id}`, 26, true),
       notify(student1.id, "announcement", "Третий срез через две недели", "Даты в объявлениях", "/", 30, true),
+      notify(student1.id, "request", "Заявление на перезачёт в работе", "Передано на кафедру количественных методов", `/requests/${recredit1.id}`, 28, true),
+      notify(student1.id, "announcement", "Карьерная неделя: стажировки в банках и консалтинге", "Каждый день в 16:40, ауд. 101", "/", 48, true),
+      notify(student1.id, "announcement", "Запись на курсы по выбору", `До ${formatDay(addDays(today, 10))}, в разделе «Профиль»`, "/", 72, true),
       notify(student2.id, "change", "Отмена: Региональные конфликты", `${formatDay(conflictsDate)}, материалы в почте группы`, "/schedule", 3),
       notify(student2.id, "score", "Новый балл: Английский язык", "Срез 2 — 70", "/grades", 24),
       notify(student2.id, "request", "Заявка принята: справка о стипендии", "Срок — до 2 рабочих дней", `/requests/${scholarship2.id}`, 4, true),
+      notify(student2.id, "announcement", "Модельная ООН: отбор в делегацию", "Эссе на английском до конца месяца", "/", 40, true),
+      notify(student2.id, "request", "Справка об обучении готова", "Можно скачать PDF с QR-кодом", `/requests/${study2.id}`, 24 * 12, true),
     ]);
 
     for (const [who, g, points] of [["student1", ge, 40], ["student2", mp, 30]] as const) {

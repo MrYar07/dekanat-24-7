@@ -421,3 +421,49 @@ export async function getMyRatingSnapshot() {
     forecast: perf.rating.forecast,
   };
 }
+
+/**
+ * Напоминания о срезах: ближайшие две недели, только те, по которым балла ещё нет.
+ * Не хранятся в базе, а считаются из плана срезов, поэтому не устаревают и не дублируются.
+ */
+export async function getCheckpointReminders(at: Date = new Date()) {
+  const ctx = await loadStudent();
+  const { user, term } = ctx;
+  if (!term || ctx.courses.length === 0) return [];
+  const week = termWeek(term.startsOn, mskNow(at).date);
+  const rows = await db
+    .select({ courseId: checkpoints.courseId, number: checkpoints.number, week: checkpoints.week })
+    .from(checkpoints)
+    .leftJoin(
+      checkpointScores,
+      and(eq(checkpointScores.checkpointId, checkpoints.id), eq(checkpointScores.studentId, user.id)),
+    )
+    .where(
+      and(
+        inArray(
+          checkpoints.courseId,
+          ctx.courses.map((c) => c.id),
+        ),
+        between(checkpoints.week, week, week + 2),
+        isNull(checkpointScores.score),
+      ),
+    )
+    .orderBy(asc(checkpoints.week), asc(checkpoints.number));
+
+  const discipline = new Map(ctx.courses.map((c) => [c.id, c.discipline]));
+  const byWeek = new Map<number, { week: number; inWeeks: number; startsOn: string; items: { discipline: string; number: number }[] }>();
+  for (const r of rows) {
+    const entry = byWeek.get(r.week) ?? {
+      week: r.week,
+      inWeeks: r.week - week,
+      startsOn: addDays(term.startsOn, (r.week - 1) * 7),
+      items: [],
+    };
+    entry.items.push({ discipline: discipline.get(r.courseId)!, number: r.number });
+    byWeek.set(r.week, entry);
+  }
+  return [...byWeek.values()].map((w) => ({
+    ...w,
+    items: w.items.sort((a, b) => a.discipline.localeCompare(b.discipline, "ru")),
+  }));
+}

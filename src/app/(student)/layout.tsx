@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Bell } from "lucide-react";
+import { LiveUpdates } from "@/components/live-updates";
 import { Logo } from "@/components/logo";
 import { StudentNav } from "@/components/nav";
 import { requireRole } from "@/lib/auth/dal";
@@ -35,6 +36,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
         <StudentNav unread={unread} />
       </div>
       <main className="min-w-0 flex-1 px-4 pb-28 md:px-0 md:pt-1 md:pb-6">{children}</main>
+      <LiveUpdates />
     </div>
   );
 }
