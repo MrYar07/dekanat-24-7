@@ -208,3 +208,41 @@ export function attendancePercent(present: number, absent: number): number | nul
   const total = present + absent;
   return total === 0 ? null : (present / total) * 100;
 }
+
+export type Privilege = {
+  key: "scholarship" | "top" | "grant25" | "grant50";
+  label: string;
+  from: number;
+  /** По какому показателю считается: рейтинг триместра или средний балл без бонуса (прообраз годового). */
+  basis: "rating" | "base";
+  reached: boolean;
+};
+
+/** Привилегии, доступные студенту, и выполнен ли порог. Гранты — только для платной формы. */
+export function privilegesFor(r: TrimesterRating, isPaid: boolean, s = DEFAULT_SETTINGS): Privilege[] {
+  const p = s.privileges;
+  const list: Privilege[] = [
+    { key: "scholarship", label: "повышенная стипендия", from: p.scholarshipFrom, basis: "rating", reached: false },
+    { key: "top", label: "«В числе лучших на факультете»", from: p.topFrom, basis: "rating", reached: false },
+  ];
+  if (isPaid) {
+    list.push(
+      { key: "grant25", label: "грант 25%", from: p.grant25From, basis: "base", reached: false },
+      { key: "grant50", label: "грант 50%", from: p.grant50From, basis: "base", reached: false },
+    );
+  }
+  return list.map((x) => ({ ...x, reached: (x.basis === "rating" ? r.rating : r.base) >= x.from }));
+}
+
+export type Goal = { label: string; target: number; value: number; gap: number; basis: Privilege["basis"] };
+
+/**
+ * Ближайшая цель для экрана «Сегодня»: для платной формы — следующий грант,
+ * для бюджета — повышенная стипендия. Всё уже достигнуто — gap = 0 у старшей цели.
+ */
+export function nextGoal(r: TrimesterRating, isPaid: boolean, s = DEFAULT_SETTINGS): Goal {
+  const ladder = privilegesFor(r, isPaid, s).filter((x) => (isPaid ? x.basis === "base" : x.key === "scholarship"));
+  const goal = ladder.find((x) => !x.reached) ?? ladder[ladder.length - 1];
+  const value = goal.basis === "rating" ? r.rating : r.base;
+  return { label: goal.label, target: goal.from, value, gap: Math.max(0, goal.from - value), basis: goal.basis };
+}

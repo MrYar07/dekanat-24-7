@@ -3,7 +3,7 @@ import { Bell } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { StudentNav } from "@/components/nav";
 import { requireRole } from "@/lib/auth/dal";
-import { getUnreadCount } from "@/lib/data/today";
+import { getUnreadCount } from "@/lib/data/learning";
 
 export default async function StudentLayout({ children }: { children: React.ReactNode }) {
   await requireRole("student");

@@ -8,7 +8,7 @@ import { Ledger, LedgerRow } from "@/components/ui/ledger";
 import { Stamp, StatusBadge } from "@/components/ui/status";
 import { EmptyState } from "@/components/ui/states";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
-import { getToday } from "@/lib/data/today";
+import { getToday } from "@/lib/data/learning";
 import type { Lesson } from "@/lib/schedule";
 import { formatDay, formatIn, formatShortDay, formatWeekday, mskNow, relativeDay, toMinutes } from "@/lib/time";
 
@@ -182,7 +182,7 @@ export default async function TodayPage() {
                     <>
                       До порога «{t.goal.label}» ({t.goal.target}) не хватает{" "}
                       <b className="text-text">{num.format(t.goal.gap)}</b>{" "}
-                      {t.goal.label.startsWith("грант") ? "балла по среднему без бонусов." : "балла."}
+                      {t.goal.basis === "base" ? "балла по среднему без бонусов." : "балла."}
                     </>
                   ) : (
                     <>Порог «{t.goal.label}» ({t.goal.target}) пройден.</>

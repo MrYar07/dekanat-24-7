@@ -32,7 +32,19 @@ describe("слой данных студента", () => {
   it.each(fns.filter((f) => !PUBLIC.has(f.name)).map((f) => [`${f.file}: ${f.name}`, f] as const))(
     "%s — пользователь из сессии",
     (_, f) => {
-      expect(f.body).toMatch(/requireRole\("student"\)/);
+      // Напрямую или через loadStudent(), который сам вызывает requireRole (проверено ниже).
+      expect(f.body).toMatch(/requireRole\("student"\)|loadStudent\(\)/);
+    },
+  );
+
+  it.each(files.filter((f) => readFileSync(join(dir, f), "utf8").includes("loadStudent(")))(
+    "%s — loadStudent берёт студента из сессии и не принимает аргументов",
+    (file) => {
+      const src = readFileSync(join(dir, file), "utf8");
+      const def = src.match(/const loadStudent = cache\(async \(\) => \{([\s\S]*?)\n\}\);/);
+      expect(def, "loadStudent должен быть cache(async () => ...) без параметров").not.toBeNull();
+      expect(def![1]).toMatch(/requireRole\("student"\)/);
+      expect(src).not.toMatch(/export[^\n]*loadStudent/);
     },
   );
 

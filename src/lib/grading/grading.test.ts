@@ -6,6 +6,8 @@ import {
   ratingForecast,
   type DisciplineInput,
   markFor,
+  nextGoal,
+  privilegesFor,
   neededOnExam,
   neededOnRemainingCheckpoints,
   sessionScore,
@@ -175,5 +177,39 @@ describe("прогноз рейтинга", () => {
   it("посещаемость без уважительных пропусков", () => {
     expect(attendancePercent(18, 2)).toBe(90);
     expect(attendancePercent(0, 0)).toBeNull();
+  });
+});
+
+describe("привилегии и ближайшая цель", () => {
+  const r = (base: number, bonus = 0) => ({ base, bonus, rating: base + bonus });
+
+  it("бюджет: только стипендия и отметка, по рейтингу с бонусом", () => {
+    const list = privilegesFor(r(83, 2), false);
+    expect(list.map((x) => x.key)).toEqual(["scholarship", "top"]);
+    expect(list.every((x) => x.reached)).toBe(true);
+  });
+
+  it("платная форма: гранты считаются по среднему без бонуса", () => {
+    const list = privilegesFor(r(89.4, 1.6), true);
+    expect(list.find((x) => x.key === "grant25")?.reached).toBe(false);
+  });
+
+  it("цель платника — ближайший грант", () => {
+    expect(nextGoal(r(89.4, 1.6), true)).toMatchObject({ label: "грант 25%", target: 90 });
+    expect(nextGoal(r(89.4, 1.6), true).gap).toBeCloseTo(0.6);
+  });
+
+  it("грант 25% есть — цель 50%", () => {
+    expect(nextGoal(r(92), true)).toMatchObject({ label: "грант 50%", target: 95, gap: 3 });
+  });
+
+  it("всё достигнуто — gap 0", () => {
+    expect(nextGoal(r(97), true)).toMatchObject({ label: "грант 50%", gap: 0 });
+  });
+
+  it("цель бюджетника — повышенная стипендия по рейтингу", () => {
+    const g = nextGoal(r(73, 1.6), false);
+    expect(g).toMatchObject({ label: "повышенная стипендия", target: 85, basis: "rating" });
+    expect(g.gap).toBeCloseTo(10.4);
   });
 });
