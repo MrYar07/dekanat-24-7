@@ -26,6 +26,8 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: *database-url
+      # Адрес в QR-коде справок. Тот же, что у Caddy, поэтому отдельно задавать не нужно.
+      SITE_URL: https://${SITE_ADDRESS:?задай SITE_ADDRESS в deploy/.env}
     depends_on:
       db:
         condition: service_healthy
