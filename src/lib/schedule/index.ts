@@ -2,6 +2,8 @@
 // Чистые функции: данные приходят из базы уже отфильтрованными по группе студента.
 import { addDays, toMinutes, weekdayOf, type MskNow } from "@/lib/time";
 
+export { PAIRS } from "./pairs";
+
 export type Slot = {
   id: string;
   courseId: string;

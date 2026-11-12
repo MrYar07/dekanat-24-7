@@ -11,6 +11,7 @@ import { Pool } from "pg";
 import * as s from "../src/db/schema";
 import { hashPassword } from "../src/lib/auth/password";
 import { DEFAULT_SETTINGS, attendancePercent, ratingForecast } from "../src/lib/grading";
+import { PAIRS } from "../src/lib/schedule/pairs";
 import { addDays, formatDay, mondayOf, mskInstant, mskNow, weekdayOf } from "../src/lib/time";
 
 const password = process.env.SEED_PASSWORD ?? "";
@@ -31,14 +32,6 @@ function rng(seed: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-
-const PAIRS: Record<string, string> = {
-  "09:30": "11:00",
-  "11:10": "12:40",
-  "13:00": "14:30",
-  "14:50": "16:20",
-  "16:40": "18:10",
-};
 
 type SlotSpec = [weekday: number, startsAt: string, room: string, kind: "lecture" | "seminar"];
 type CourseSpec = {

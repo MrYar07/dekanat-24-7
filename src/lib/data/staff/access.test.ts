@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -8,7 +8,15 @@ import { describe, expect, it } from "vitest";
 // - функции преподавателя с id курса ищут курс только через ownCourse(courseId, user.id),
 //   а ownCourse ограничивает выборку курсами этого преподавателя и наружу не экспортируется.
 
-const ROLE: Record<string, string> = { "dean.ts": "dean_office", "teacher.ts": "teacher" };
+const ROLE: Record<string, string> = {
+  "dean.ts": "dean_office",
+  "dean-announcements.ts": "dean_office",
+  "dean-schedule.ts": "dean_office",
+  "teacher.ts": "teacher",
+};
+
+// Новый файл в этой папке должен попасть в таблицу ролей, иначе его функции останутся без проверки.
+const files = readdirSync(__dirname).filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"));
 
 const fns = Object.keys(ROLE).flatMap((file) => {
   const src = readFileSync(join(__dirname, file), "utf8");
@@ -21,8 +29,9 @@ const fns = Object.keys(ROLE).flatMap((file) => {
 });
 
 describe("слой данных сотрудника", () => {
-  it("функции найдены в обоих файлах", () => {
-    expect(new Set(fns.map((f) => f.file)).size).toBe(2);
+  it("у каждого файла слоя есть роль, и в каждом найдены функции", () => {
+    expect(files.sort()).toEqual(Object.keys(ROLE).sort());
+    expect(new Set(fns.map((f) => f.file)).size).toBe(files.length);
   });
 
   it.each(fns.map((f) => [`${f.file}: ${f.name}`, f] as const))("%s — роль проверяется в самой функции", (_, f) => {

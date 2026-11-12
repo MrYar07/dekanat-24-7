@@ -3,6 +3,8 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { changeRequestStatus } from "@/lib/data/staff/dean";
+import { publishAnnouncement, type AnnouncementInput } from "@/lib/data/staff/dean-announcements";
+import { changeLesson, restoreLesson } from "@/lib/data/staff/dean-schedule";
 import { saveMyCheckpointScores, type ScoreEntry } from "@/lib/data/staff/teacher";
 
 export type StatusFormState = { error?: string; note?: string; status?: string };
@@ -34,4 +36,52 @@ export async function saveScoresAction(courseId: string, cpNumber: number, _prev
   if (!result.ok) return { error: result.error };
   revalidatePath("/staff", "layout");
   return { saved: result.saved, cleared: result.cleared, at: Date.now() };
+}
+
+export type AnnouncementFormState = {
+  error?: string;
+  fields?: Partial<Record<keyof AnnouncementInput, string>>;
+  values?: AnnouncementInput;
+  recipients?: number;
+  at?: number;
+};
+
+/** Деканат публикует объявление. После успеха форма очищается, после ошибки — остаётся заполненной. */
+export async function publishAnnouncementAction(_prev: AnnouncementFormState, form: FormData): Promise<AnnouncementFormState> {
+  const values: AnnouncementInput = {
+    title: String(form.get("title") ?? ""),
+    body: String(form.get("body") ?? ""),
+    audience: String(form.get("audience") ?? ""),
+  };
+  const result = await publishAnnouncement(values);
+  if (!result.ok) return { error: result.error, fields: result.fields, values };
+  revalidatePath("/staff/announcements");
+  return { recipients: result.recipients, at: Date.now() };
+}
+
+export type LessonFormState = { error?: string; recipients?: number; at?: number };
+
+/** Деканат меняет конкретную пару: перенос, отмена или другая аудитория. */
+export async function changeLessonAction(slotId: string, date: string, _prev: LessonFormState, form: FormData): Promise<LessonFormState> {
+  const text = (name: string) => String(form.get(name) ?? "");
+  const result = await changeLesson({
+    slotId,
+    date,
+    kind: text("kind"),
+    newDate: text("newDate"),
+    newStartsAt: text("newStartsAt"),
+    newRoom: text("newRoom"),
+    reason: text("reason"),
+  });
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/staff/schedule");
+  return { recipients: result.recipients, at: Date.now() };
+}
+
+/** Вернуть пару в расписание по сетке. */
+export async function restoreLessonAction(slotId: string, date: string): Promise<LessonFormState> {
+  const result = await restoreLesson(slotId, date);
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/staff/schedule");
+  return { recipients: result.recipients, at: Date.now() };
 }

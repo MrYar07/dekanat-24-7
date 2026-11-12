@@ -2,6 +2,7 @@ import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { logout } from "@/app/login/actions";
 import { Logo } from "@/components/logo";
+import { DeanNav } from "@/components/staff-nav";
 import { Button } from "@/components/ui/button";
 import { requireRole } from "@/lib/auth/dal";
 
@@ -13,7 +14,9 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-3 md:px-6 md:py-5">
-      <header className="border-border mb-6 flex items-center justify-between gap-3 border-b pb-3">
+      <header
+        className={`flex items-center justify-between gap-3 pb-3 ${user.role === "dean_office" ? "" : "border-border mb-6 border-b"}`}
+      >
         <Link href="/staff" aria-label="Деканат 24/7, кабинет сотрудника">
           <Logo withCaption />
         </Link>
@@ -29,6 +32,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
           </form>
         </div>
       </header>
+      {user.role === "dean_office" && <DeanNav />}
       <main className="pb-10">{children}</main>
     </div>
   );
