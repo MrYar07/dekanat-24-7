@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check, Circle, FileText, TrendingUp } from "lucide-react";
+import { Calculator, Check, Circle, FileText, TrendingUp } from "lucide-react";
 import { Callout } from "@/components/ui/callout";
 import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
@@ -178,6 +178,10 @@ export default async function GradesPage() {
               <Link href="/grades/rating" className="text-brand inline-flex items-center gap-1.5 text-sm font-semibold hover:underline">
                 <TrendingUp className="size-4" aria-hidden="true" />
                 Из чего он складывается
+              </Link>
+              <Link href="/grades/what-if" className="text-brand inline-flex items-center gap-1.5 text-sm font-semibold hover:underline">
+                <Calculator className="size-4" aria-hidden="true" />
+                А если…
               </Link>
               <Link
                 href="/requests/new/rating"

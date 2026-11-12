@@ -307,6 +307,12 @@ export default async function RatingBreakdownPage() {
         <p className="text-muted mt-3 text-xs">
           Шкала на всех графиках одна, от {domain[0]} до 100: по высоте точек дисциплины можно сравнивать между собой.
         </p>
+        <p className="mt-6 text-sm">
+          Хочешь понять, что изменит следующий срез или экзамен?{" "}
+          <Link href="/grades/what-if" className="text-brand font-semibold hover:underline">
+            Калькулятор «А если…»
+          </Link>
+        </p>
       </section>
     </>
   );
