@@ -102,6 +102,29 @@ const DOCUMENT_TYPES = [
   { code: "recredit", name: "Заявление на перезачёт дисциплины", instant: false, days: 5, description: "Перезачёт дисциплины, изученной в другом вузе или на онлайн-курсе. Рассматривает деканат, до 5 рабочих дней." },
 ] as const;
 
+/** Вымышленные одногруппники: [фамилия, имя, отчество]. */
+const CLASSMATES = {
+  ge: [
+    ["Абрамова", "Дарья", "Сергеевна"],
+    ["Булатов", "Тимур", "Ренатович"],
+    ["Воронина", "Полина", "Андреевна"],
+    ["Гусев", "Илья", "Максимович"],
+    ["Жукова", "Ева", "Дмитриевна"],
+    ["Климов", "Арсений", "Олегович"],
+    ["Мельникова", "София", "Павловна"],
+    ["Тарасов", "Никита", "Игоревич"],
+  ],
+  mp: [
+    ["Андреева", "Вероника", "Ильинична"],
+    ["Белов", "Георгий", "Артёмович"],
+    ["Захарова", "Милана", "Евгеньевна"],
+    ["Козлов", "Даниил", "Романович"],
+    ["Лебедева", "Алиса", "Кирилловна"],
+    ["Соколов", "Марк", "Витальевич"],
+    ["Федорова", "Ульяна", "Алексеевна"],
+  ],
+} as const satisfies Record<string, readonly (readonly [string, string, string])[]>;
+
 const now = new Date();
 const today = mskNow(now).date;
 const termStart = addDays(mondayOf(today), -56);
@@ -187,6 +210,29 @@ async function main() {
       { userId: student1.id, groupId: ge2.id, recordBookNumber: "М-24-0417", isPaid: true },
       { userId: student2.id, groupId: mp3.id, recordBookNumber: "М-23-1182", isPaid: false },
     ]);
+
+    // Одногруппники: нужны журналу преподавателя. Войти под ними нельзя (случайный пароль).
+    async function classmates(groupId: string, prefix: string, names: readonly (readonly [string, string, string])[]) {
+      const rows = await tx
+        .insert(s.users)
+        .values(
+          names.map(([lastName, firstName, middleName], i) => ({
+            login: `${prefix}-${String(i + 1).padStart(2, "0")}`,
+            passwordHash: lockedHash,
+            role: "student" as const,
+            lastName,
+            firstName,
+            middleName,
+          })),
+        )
+        .returning({ id: s.users.id });
+      await tx.insert(s.studentProfiles).values(
+        rows.map((r, i) => ({ userId: r.id, groupId, recordBookNumber: `${prefix.toUpperCase()}-${String(i + 1).padStart(4, "0")}`, isPaid: i % 3 === 0 })),
+      );
+      return rows.map((r) => r.id);
+    }
+    const geMates = await classmates(ge2.id, "ge24", CLASSMATES.ge);
+    const mpMates = await classmates(mp3.id, "mp23", CLASSMATES.mp);
     await tx.insert(s.staffProfiles).values({ userId: dean.id, position: "Специалист деканата", facultyId: null });
 
     // Триместр и дисциплины
@@ -204,8 +250,10 @@ async function main() {
 
     type Seeded = { spec: CourseSpec; courseId: string; slotIds: { id: string; weekday: number }[] };
 
-    async function seedGroup(groupId: string, studentId: string, specs: CourseSpec[], presentRate: number, seed: number) {
+    async function seedGroup(groupId: string, studentId: string, specs: CourseSpec[], presentRate: number, seed: number, mates: string[]) {
       const random = rng(seed);
+      // Отдельный генератор: баллы одногруппников не должны сдвигать посещаемость и рейтинг главного студента.
+      const mateRandom = rng(seed + 1);
       const seeded: Seeded[] = [];
       const forecastInputs = [];
 
@@ -249,6 +297,15 @@ async function main() {
           });
         }
 
+        // Одногруппникам — первый срез всем, второй тем, у кого он есть у главного студента и не у каждого пятого.
+        const mateScores = mates.flatMap((mateId, k) => {
+          const score = (base: number) => Math.min(100, Math.max(45, Math.round(base + (mateRandom() - 0.5) * 30)));
+          const rows = [{ checkpointId: cps[0].id, studentId: mateId, score: score(78), gradedAt: mskInstant(addDays(termStart, 24), "18:00") }];
+          if (cp2 !== null && k % 5 !== 4) rows.push({ checkpointId: cps[1].id, studentId: mateId, score: score(80), gradedAt: mskInstant(addDays(today, -1 - (i % 5)), `${16 + (i % 3)}:30`) });
+          return rows;
+        });
+        if (mateScores.length) await tx.insert(s.checkpointScores).values(mateScores);
+
         await tx.insert(s.courseResults).values({ courseId: course.id, studentId, bonus: spec.bonus ?? 0 });
 
         // Посещаемость за прошедшие учебные дни.
@@ -278,8 +335,8 @@ async function main() {
       return { seeded, forecastInputs };
     }
 
-    const ge = await seedGroup(ge2.id, student1.id, GE_COURSES, 0.95, 417);
-    const mp = await seedGroup(mp3.id, student2.id, MP_COURSES, 0.8, 1182);
+    const ge = await seedGroup(ge2.id, student1.id, GE_COURSES, 0.95, 417, geMates);
+    const mp = await seedGroup(mp3.id, student2.id, MP_COURSES, 0.8, 1182, mpMates);
 
     // Изменения в расписании на ближайшие дни.
     const tomorrow = addDays(today, 1);

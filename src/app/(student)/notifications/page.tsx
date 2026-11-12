@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Bell, CalendarClock, FileText, Megaphone, Timer, TrendingUp, type LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { FilterChip, FilterChips } from "@/components/ui/filter-chips";
 import { EmptyState } from "@/components/ui/states";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getCheckpointReminders } from "@/lib/data/learning";
@@ -39,26 +40,6 @@ function inWeeksText(n: number) {
   return `Через ${n} недели`;
 }
 
-function FilterChip({ href, active, label, count }: { href: string; active: boolean; label: string; count?: number }) {
-  return (
-    <Link
-      href={href}
-      aria-current={active ? "page" : undefined}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${
-        active ? "border-brand bg-brand-soft text-brand font-semibold" : "border-border text-muted hover:text-text"
-      }`}
-    >
-      {label}
-      {count ? (
-        <span className="bg-brand text-brand-ink rounded-full px-1.5 text-[11px] leading-[18px] font-bold tabular-nums">
-          {count}
-          <span className="sr-only"> непрочитанных</span>
-        </span>
-      ) : null}
-    </Link>
-  );
-}
-
 export default async function NotificationsPage({ searchParams }: { searchParams: Promise<{ kind?: string }> }) {
   const { kind: raw } = await searchParams;
   const kind = isNotificationKind(raw) ? raw : undefined;
@@ -91,7 +72,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
       </PageTitle>
 
       <div className="mb-5 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-        <nav aria-label="Тип уведомлений" className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden">
+        <FilterChips label="Тип уведомлений">
           <FilterChip href="/notifications" active={!kind} label="Все" count={unreadTotal} />
           {KINDS.map((k) => (
             <FilterChip
@@ -102,7 +83,7 @@ export default async function NotificationsPage({ searchParams }: { searchParams
               count={unread[k.kind]}
             />
           ))}
-        </nav>
+        </FilterChips>
         {shownUnread > 0 && <MarkAllRead kind={kind ?? null} />}
       </div>
 

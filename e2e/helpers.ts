@@ -2,14 +2,14 @@ import { expect, type Page } from "@playwright/test";
 import { Pool } from "pg";
 
 /** Вход через форму. Пароль тестовых аккаунтов — из .env, в коде теста его нет. */
-export async function login(page: Page, who: "student1" | "student2") {
+export async function login(page: Page, who: "student1" | "student2" | "teacher" | "dean") {
   const password = process.env.SEED_PASSWORD;
   if (!password) throw new Error("Нужен SEED_PASSWORD в .env");
   await page.goto("/login");
   await page.getByLabel("Логин").fill(who);
   await page.getByLabel("Пароль").fill(password);
   await page.getByRole("button", { name: "Войти" }).click();
-  await expect(page).toHaveURL("/");
+  await expect(page).toHaveURL(who.startsWith("student") ? "/" : "/staff");
 }
 
 /** Прямой запрос к локальной базе — только чтобы узнать id чужой заявки для теста. */
