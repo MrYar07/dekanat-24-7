@@ -174,13 +174,19 @@ export default async function GradesPage() {
                 «Меридиана» — подробнее в правилах оценивания.
               </p>
             )}
-            <Link
-              href="/requests/new/rating"
-              className="text-brand mt-4 inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
-            >
-              <FileText className="size-4" aria-hidden="true" />
-              Выписка рейтинга в PDF
-            </Link>
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+              <Link href="/grades/rating" className="text-brand inline-flex items-center gap-1.5 text-sm font-semibold hover:underline">
+                <TrendingUp className="size-4" aria-hidden="true" />
+                Из чего он складывается
+              </Link>
+              <Link
+                href="/requests/new/rating"
+                className="text-brand inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
+              >
+                <FileText className="size-4" aria-hidden="true" />
+                Выписка рейтинга в PDF
+              </Link>
+            </div>
           </Card>
 
           <div>

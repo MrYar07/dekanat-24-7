@@ -246,3 +246,101 @@ export function nextGoal(r: TrimesterRating, isPaid: boolean, s = DEFAULT_SETTIN
   const value = goal.basis === "rating" ? r.rating : r.base;
   return { label: goal.label, target: goal.from, value, gap: Math.max(0, goal.from - value), basis: goal.basis };
 }
+
+// ——— Разбор «из чего складывается» ———
+
+export type PartShare = {
+  /** Балл части, 0–100. */
+  value: number;
+  /** Вес части в балле дисциплины. */
+  weight: number;
+  /** Вклад в балл дисциплины: value × weight. */
+  points: number;
+};
+
+export type DisciplineBreakdown = {
+  score: number;
+  forecast: boolean;
+  work: PartShare & { mean: number; bonus: number; count: number };
+  session: PartShare & {
+    /** auto — автомат по зачёту; forecast — сессии ещё не было, подставлена работа в триместре; taken — сдано. */
+    mode: "auto" | "forecast" | "taken";
+    kind: "exam" | "credit";
+    raw: number | null;
+    /** Зачёт без автомата упёрся в потолок. */
+    capped: boolean;
+    retakes: number;
+    penalty: number;
+  };
+  engagement: PartShare & {
+    /** both — посещаемость и активность; одна из них; none — нет ни того ни другого, подставлена работа. */
+    mode: "both" | "attendance" | "activity" | "none";
+    attendancePct: number | null;
+    activity: number | null;
+  };
+};
+
+/**
+ * Балл дисциплины по частям — для экрана «Из чего мой рейтинг». Считает теми же функциями,
+ * что и disciplineScore, поэтому сумма вкладов всегда равна баллу дисциплины.
+ */
+export function explainDiscipline(input: DisciplineInput, s = DEFAULT_SETTINGS): DisciplineBreakdown | null {
+  const result = disciplineScore(input, s);
+  if (!result) return null;
+  const w = s.weights;
+  const share = (value: number, weight: number): PartShare => ({ value, weight, points: value * weight });
+
+  const bonus = clamp(input.bonus ?? 0, 0, s.teacherBonusMax);
+  const retakes = input.session.retakes ?? 0;
+  const raw = input.session.raw;
+  const mode = result.session.auto ? "auto" : result.session.forecast ? "forecast" : "taken";
+
+  return {
+    score: result.score,
+    forecast: result.forecast,
+    work: { ...share(result.work, w.work), mean: mean(input.checkpoints), bonus, count: input.checkpoints.length },
+    session: {
+      ...share(result.session.score, w.session),
+      mode,
+      kind: input.session.kind,
+      raw,
+      capped: mode === "taken" && input.session.kind === "credit" && raw !== null && raw > s.creditCapWithoutAuto,
+      retakes: mode === "taken" ? retakes : 0,
+      penalty: mode === "taken" ? s.retakePenalty * retakes : 0,
+    },
+    engagement: {
+      ...share(result.engagement, w.engagement),
+      mode:
+        input.attendancePct !== null && input.activity !== null
+          ? "both"
+          : input.attendancePct !== null
+            ? "attendance"
+            : input.activity !== null
+              ? "activity"
+              : "none",
+      attendancePct: input.attendancePct,
+      activity: input.activity,
+    },
+  };
+}
+
+export type RatingStep = { after: number; rating: number; base: number };
+
+/**
+ * Как срезы меняли прогноз рейтинга: рейтинг, посчитанный только по первым k срезам каждой дисциплины.
+ * Посещаемость, бонусы и баллы активности берутся сегодняшние — это разбор влияния срезов, а не архив.
+ * Шаг k есть, только если хотя бы у одной дисциплины выставлен k-й срез.
+ */
+export function ratingBySteps(courses: DisciplineInput[], activityPoints: number, s = DEFAULT_SETTINGS): RatingStep[] {
+  const max = Math.max(0, ...courses.map((c) => c.checkpoints.length));
+  const steps: RatingStep[] = [];
+  for (let k = 1; k <= max; k++) {
+    const r = ratingForecast(
+      courses.map((c) => ({ ...c, checkpoints: c.checkpoints.slice(0, k) })),
+      activityPoints,
+      s,
+    );
+    if (r) steps.push({ after: k, rating: r.rating, base: r.base });
+  }
+  return steps;
+}
