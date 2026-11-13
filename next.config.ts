@@ -32,6 +32,8 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["@node-rs/argon2"],
   // Шрифты для PDF читаются с диска во время запроса: явно кладём их в standalone-сборку.
   outputFileTracingIncludes: { "/**": ["./assets/fonts/*"] },
+  // Файл-подтверждение достижения — до 3 МБ (src/lib/achievements), плюс служебные части формы.
+  experimental: { serverActions: { bodySizeLimit: "4mb" } },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

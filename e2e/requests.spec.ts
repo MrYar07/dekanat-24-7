@@ -63,3 +63,26 @@ test.describe("справка за минуту", () => {
     await guest.close();
   });
 });
+
+test.describe("вход и выход", () => {
+  test("«Выйти на всех устройствах» завершает и другой сеанс", async ({ page, browser }) => {
+    await login(page, "student2");
+    const other = await (await browser.newContext()).newPage();
+    await login(other, "student2");
+
+    await page.goto("/profile");
+    await page.getByRole("button", { name: "Выйти на всех устройствах" }).click();
+    await expect(page).toHaveURL("/login");
+
+    // Второй сеанс тоже закрыт: любая страница ведёт на вход.
+    await other.goto("/grades");
+    await expect(other).toHaveURL("/login");
+    await other.context().close();
+  });
+
+  test("robots.txt открыт без входа и запрещает индексацию", async ({ request }) => {
+    const res = await request.get("/robots.txt", { maxRedirects: 0 });
+    expect(res.status()).toBe(200);
+    expect(await res.text()).toContain("Disallow: /");
+  });
+});

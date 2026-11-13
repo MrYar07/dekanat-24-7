@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ChevronRight, Inbox, NotebookPen, Zap } from "lucide-react";
+import { Award, ChevronRight, Inbox, NotebookPen, Zap } from "lucide-react";
+import { AchievementStatusBadge } from "@/components/achievement-status";
 import { RequestStatusBadge } from "@/components/request-status";
 import { FilterChip, FilterChips } from "@/components/ui/filter-chips";
 import { EmptyState } from "@/components/ui/states";
 import { PageTitle } from "@/components/ui/typography";
 import { requireRole } from "@/lib/auth/dal";
 import { getRequestQueue, isQueueFilter, QUEUE_FILTERS, type QueueFilter } from "@/lib/data/staff/dean";
+import { getAchievementQueue } from "@/lib/data/staff/dean-achievements";
 import { getMyCourses } from "@/lib/data/staff/teacher";
 
 export const metadata: Metadata = { title: "Кабинет сотрудника" };
@@ -21,12 +23,20 @@ const EMPTY: Record<QueueFilter, string> = {
 };
 
 async function DeanQueue({ filter }: { filter: QueueFilter }) {
-  const { items, counts } = await getRequestQueue(filter);
+  // Одна очередь на всё, что ждёт решения деканата: заявки на документы и достижения для рейтинга.
+  const [requests, achievements] = await Promise.all([getRequestQueue(filter), getAchievementQueue(filter)]);
+  const waiting = requests.counts.active + achievements.counts.active;
+  const items = [
+    ...requests.items.map((r) => ({ ...r, source: "request" as const })),
+    ...achievements.items.map((a) => ({ ...a, source: "achievement" as const })),
+  ].sort((a, b) =>
+    filter === "active" ? a.createdAt.getTime() - b.createdAt.getTime() : b.updatedAt.getTime() - a.updatedAt.getTime(),
+  );
   return (
     <>
       <PageTitle
         eyebrow="деканат"
-        hint={counts.active > 0 ? `Ждут решения: ${counts.active}. Сверху те, кто подал раньше.` : "Все заявки разобраны."}
+        hint={waiting > 0 ? `Ждут решения: ${waiting}. Сверху те, кто подал раньше.` : "Все заявки разобраны."}
       >
         Заявки студентов
       </PageTitle>
@@ -39,7 +49,7 @@ async function DeanQueue({ filter }: { filter: QueueFilter }) {
               href={f === "active" ? "/staff" : `/staff?filter=${f}`}
               active={filter === f}
               label={QUEUE_FILTERS[f].label}
-              count={f === "active" ? counts.active : undefined}
+              count={f === "active" ? waiting : undefined}
               countLabel="ждут"
             />
           ))}
@@ -52,7 +62,30 @@ async function DeanQueue({ filter }: { filter: QueueFilter }) {
         </EmptyState>
       ) : (
         <ul className="border-border bg-surface divide-border divide-y overflow-hidden rounded-xl border">
-          {items.map((r) => (
+          {items.map((r) =>
+            r.source === "achievement" ? (
+              <li key={r.id}>
+                <Link href={`/staff/achievements/${r.id}`} className="hover:bg-surface-2 flex items-center gap-3 px-4 py-3.5">
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold">{r.title}</span>
+                    <span className="text-muted mt-0.5 block text-sm">
+                      {r.student} · {r.group}
+                    </span>
+                    <span className="text-muted mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                      <AchievementStatusBadge status={r.status} points={r.points} />
+                      <span className="inline-flex items-center gap-0.5">
+                        <Award className="size-3.5" aria-hidden="true" />
+                        достижение
+                      </span>
+                      <span>
+                        подано {day.format(r.createdAt)} · до {r.maxPoints} баллов
+                      </span>
+                    </span>
+                  </span>
+                  <ChevronRight className="text-muted size-5 shrink-0" aria-hidden="true" />
+                </Link>
+              </li>
+            ) : (
             <li key={r.id}>
               <Link href={`/staff/requests/${r.id}`} className="hover:bg-surface-2 flex items-center gap-3 px-4 py-3.5">
                 <span className="min-w-0 flex-1">
@@ -77,7 +110,8 @@ async function DeanQueue({ filter }: { filter: QueueFilter }) {
                 <ChevronRight className="text-muted size-5 shrink-0" aria-hidden="true" />
               </Link>
             </li>
-          ))}
+            ),
+          )}
         </ul>
       )}
     </>

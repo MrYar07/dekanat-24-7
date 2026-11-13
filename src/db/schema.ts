@@ -13,6 +13,7 @@ import {
   smallint,
   primaryKey,
   serial,
+  customType,
 } from "drizzle-orm/pg-core";
 import type { DocumentSnapshot } from "../lib/documents/types";
 import type { GradingSettings } from "../lib/grading";
@@ -276,10 +277,29 @@ export const achievements = pgTable(
     proofUrl: text("proof_url"),
     status: achievementStatusEnum("status").notNull().default("pending"),
     points: smallint("points"),
+    /** Комментарий деканата: при отказе — причина. */
+    note: text("note"),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("achievements_student_idx").on(t.studentId, t.termId)],
 );
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
+
+/**
+ * Файл-подтверждение достижения. Лежит отдельно, чтобы списки достижений не тянули из базы мегабайты.
+ * mime — определён по содержимому файла на сервере, а не взят у браузера.
+ */
+export const achievementFiles = pgTable("achievement_files", {
+  achievementId: uuid("achievement_id")
+    .primaryKey()
+    .references(() => achievements.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  mime: text("mime").notNull(),
+  size: integer("size").notNull(),
+  data: bytea("data").notNull(),
+});
 
 /** Настройки оценивания (docs/GRADING.md). Одна строка с key = default. */
 export const gradingSettings = pgTable("grading_settings", {

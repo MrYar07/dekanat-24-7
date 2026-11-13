@@ -3,6 +3,7 @@ import { cache } from "react";
 import { and, asc, between, count, desc, eq, inArray, isNull, notInArray, or, sum } from "drizzle-orm";
 import { db } from "@/db";
 import {
+  achievementFiles,
   achievementKinds,
   achievements,
   announcements,
@@ -379,9 +380,13 @@ export async function getGrades(at: Date = new Date()) {
             maxPoints: achievementKinds.maxPoints,
             status: achievements.status,
             points: achievements.points,
+            note: achievements.note,
+            proofUrl: achievements.proofUrl,
+            fileName: achievementFiles.name,
           })
           .from(achievements)
           .innerJoin(achievementKinds, eq(achievementKinds.id, achievements.kindId))
+          .leftJoin(achievementFiles, eq(achievementFiles.achievementId, achievements.id))
           .where(and(eq(achievements.studentId, user.id), eq(achievements.termId, term.id)))
           .orderBy(desc(achievements.createdAt))
       : Promise.resolve([]),

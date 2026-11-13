@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Calculator, Check, Circle, FileText, TrendingUp } from "lucide-react";
+import { Calculator, Check, Circle, ExternalLink, FileText, Paperclip, Plus, TrendingUp } from "lucide-react";
+import { AchievementStatusBadge } from "@/components/achievement-status";
+import { buttonClass } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
-import { Stamp, StatusBadge } from "@/components/ui/status";
 import { EmptyState } from "@/components/ui/states";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getGrades } from "@/lib/data/learning";
@@ -129,8 +130,8 @@ function CourseCard({ c, s, week }: { c: Course; s: GradingSettings; week: numbe
   );
 }
 
-export default async function GradesPage() {
-  const g = await getGrades();
+export default async function GradesPage({ searchParams }: { searchParams: Promise<{ sent?: string }> }) {
+  const [g, { sent }] = await Promise.all([getGrades(), searchParams]);
   const s = g.settings;
 
   if (!g.term || g.courses.length === 0) {
@@ -237,30 +238,63 @@ export default async function GradesPage() {
 
       <section aria-labelledby="achievements-title">
         <SectionTitle>
-          <span id="achievements-title">Достижения триместра</span>
+          <span id="achievements-title" className="scroll-mt-4">
+            Достижения триместра
+          </span>
         </SectionTitle>
+        {sent && (
+          <div className="mb-4">
+            <Callout tone="info" lead="Достижение отправлено.">
+              Деканат проверит подтверждение и начислит баллы. Решение придёт в уведомлениях.
+            </Callout>
+          </div>
+        )}
         {g.achievements.length === 0 ? (
           <p className="text-muted text-sm">
-            Пока ничего. Статьи, конференции, соревнования и работа в студенческих организациях дают до +
+            Пока ничего. Олимпиады, статьи, соревнования и работа в студенческих организациях дают до +
             {one.format(s.activityPointsMax * s.activityCoefficient)} к рейтингу.
           </p>
         ) : (
           <ul className="divide-border divide-y text-sm">
             {g.achievements.map((a) => (
-              <li key={a.id} className="flex items-center justify-between gap-3 py-2.5 first:pt-0">
+              <li key={a.id} className="flex items-start justify-between gap-3 py-2.5 first:pt-0">
                 <span className="min-w-0">
                   {a.title}
                   <span className="text-muted block text-xs">
                     {a.kind} · до {a.maxPoints} баллов
                   </span>
+                  {a.status === "rejected" && a.note && <span className="mt-1 block text-xs">Причина: {a.note}</span>}
+                  {a.status === "approved" && a.note && <span className="mt-1 block text-xs">Деканат: {a.note}</span>}
+                  {(a.fileName || a.proofUrl) && (
+                    <span className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                      {a.fileName && (
+                        <a
+                          href={`/grades/achievements/${a.id}/file`}
+                          target="_blank"
+                          rel="noopener"
+                          className="text-brand inline-flex min-w-0 items-center gap-1 font-semibold hover:underline"
+                        >
+                          <Paperclip className="size-3.5 shrink-0" aria-hidden="true" />
+                          <span className="truncate">{a.fileName}</span>
+                        </a>
+                      )}
+                      {a.proofUrl && (
+                        <a
+                          href={a.proofUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-brand inline-flex items-center gap-1 font-semibold hover:underline"
+                        >
+                          <ExternalLink className="size-3.5 shrink-0" aria-hidden="true" />
+                          ссылка
+                        </a>
+                      )}
+                    </span>
+                  )}
                 </span>
-                {a.status === "approved" ? (
-                  <Stamp>+{a.points}</Stamp>
-                ) : a.status === "pending" ? (
-                  <StatusBadge tone="wait">на проверке</StatusBadge>
-                ) : (
-                  <StatusBadge tone="danger">отклонено</StatusBadge>
-                )}
+                <span className="shrink-0">
+                  <AchievementStatusBadge status={a.status} points={a.points} />
+                </span>
               </li>
             ))}
           </ul>
@@ -270,6 +304,10 @@ export default async function GradesPage() {
             Засчитано {g.activityPoints} баллов — это +{one.format(r?.bonus ?? 0)} к рейтингу.
           </p>
         )}
+        <Link href="/grades/achievements/new" className={buttonClass("secondary", "mt-4 w-full text-sm sm:w-auto")}>
+          <Plus className="size-4" aria-hidden="true" />
+          Добавить достижение
+        </Link>
       </section>
     </>
   );

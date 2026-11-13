@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getMyProfile } from "@/lib/data/student";
 import { logout } from "@/app/login/actions";
+import { logoutEverywhere } from "@/app/login/logout-all";
 
 export const metadata: Metadata = { title: "Профиль" };
 
@@ -55,6 +56,14 @@ export default async function ProfilePage() {
           <LogOut className="size-5" aria-hidden="true" />
           Выйти
         </Button>
+      </form>
+      <form action={logoutEverywhere} className="mt-2">
+        <Button type="submit" variant="ghost" className="w-full text-sm">
+          Выйти на всех устройствах
+        </Button>
+        <p className="text-muted mt-1 text-center text-xs">
+          Если входил с чужого телефона или компьютера. Завершит все сеансы, и этот тоже.
+        </p>
       </form>
     </>
   );

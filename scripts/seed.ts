@@ -78,6 +78,7 @@ const TEACHERS: Record<string, { lastName: string; firstName: string; middleName
 const ACHIEVEMENT_KINDS = [
   { key: "journal", direction: "Наука", name: "Статья в научном журнале", maxPoints: 100 },
   { key: "conference", direction: "Наука", name: "Статья в сборнике, доклад на конференции", maxPoints: 60 },
+  { key: "olympiad", direction: "Наука", name: "Призовое место на олимпиаде", maxPoints: 60 },
   { key: "contest", direction: "Наука", name: "Участие в конкурсе научных работ", maxPoints: 50 },
   { key: "art", direction: "Творчество и медиа", name: "Выступление на межвузовском конкурсе", maxPoints: 40 },
   { key: "media", direction: "Творчество и медиа", name: "Материалы для студенческих медиа (за триместр)", maxPoints: 20 },
@@ -135,7 +136,7 @@ async function main() {
   await db.transaction(async (tx) => {
     await tx.execute(sql`TRUNCATE
       notifications, announcements, issued_documents, request_events, requests, document_types,
-      achievements, achievement_kinds, grading_settings,
+      achievement_files, achievements, achievement_kinds, grading_settings,
       course_results, attendance, checkpoint_scores, checkpoints, lesson_changes, timetable_slots, courses, disciplines, terms,
       login_attempts, sessions, student_profiles, staff_profiles, users, groups, programs, faculties
       RESTART IDENTITY CASCADE`);
@@ -378,9 +379,9 @@ async function main() {
       kinds[ACHIEVEMENT_KINDS.findIndex((k) => k.key === key)].id;
 
     await tx.insert(s.achievements).values([
-      { studentId: student1.id, termId: term.id, kindId: kindId("conference"), title: "Доклад на студенческой конференции «Экономика завтрашнего дня»", status: "approved", points: 40, createdAt: ago(24 * 20) },
-      { studentId: student1.id, termId: term.id, kindId: kindId("journal"), title: "Статья в журнале «Вестник молодых экономистов»", status: "pending", createdAt: ago(30) },
-      { studentId: student2.id, termId: term.id, kindId: kindId("help"), title: "Помощь в проведении Дня открытых дверей", status: "approved", points: 30, createdAt: ago(24 * 25) },
+      { studentId: student1.id, termId: term.id, kindId: kindId("conference"), title: "Доклад на студенческой конференции «Экономика завтрашнего дня»", proofUrl: "https://example.org/conference-2026/program", status: "approved", points: 40, createdAt: ago(24 * 20), decidedAt: ago(24 * 18) },
+      { studentId: student1.id, termId: term.id, kindId: kindId("journal"), title: "Статья в журнале «Вестник молодых экономистов»", proofUrl: "https://example.org/vestnik-molodyh-ekonomistov/2026-3", status: "pending", createdAt: ago(30) },
+      { studentId: student2.id, termId: term.id, kindId: kindId("help"), title: "Помощь в проведении Дня открытых дверей", proofUrl: "https://example.org/open-day/volunteers", status: "approved", points: 30, createdAt: ago(24 * 25), decidedAt: ago(24 * 23) },
     ]);
 
     // Справки и заявления

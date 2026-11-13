@@ -10,6 +10,7 @@ import { describe, expect, it } from "vitest";
 
 const ROLE: Record<string, string> = {
   "dean.ts": "dean_office",
+  "dean-achievements.ts": "dean_office",
   "dean-announcements.ts": "dean_office",
   "dean-schedule.ts": "dean_office",
   "teacher.ts": "teacher",
