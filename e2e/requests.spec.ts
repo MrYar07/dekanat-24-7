@@ -86,3 +86,41 @@ test.describe("вход и выход", () => {
     expect(await res.text()).toContain("Disallow: /");
   });
 });
+
+test.describe("ограничение попыток входа", () => {
+  test("чужие неудачные попытки под общим логином не закрывают вход", async ({ page }) => {
+    // Пять неудач под логином dean с постороннего адреса: раньше это блокировало логин для всех.
+    await query(
+      `insert into login_attempts (login, ip, success)
+       select 'dean', '203.0.113.7', false from generate_series(1, 5)`,
+    );
+    try {
+      await login(page, "dean");
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText("Заявки студентов");
+    } finally {
+      await query("delete from login_attempts where ip = '203.0.113.7'");
+    }
+  });
+
+  test("пять неверных паролей со своего адреса закрывают вход даже с верным паролем", async ({ page }) => {
+    const clean = () => query("delete from login_attempts where login = 'student2' and not success");
+    await clean();
+    try {
+      await page.goto("/login");
+      for (let i = 0; i < 5; i++) {
+        await page.getByLabel("Логин").fill("student2");
+        await page.getByLabel("Пароль").fill(`не тот пароль ${i}`);
+        await page.getByRole("button", { name: "Войти" }).click();
+        await expect(page.getByText("Неверный логин или пароль")).toBeVisible();
+        await expect(page.getByRole("button", { name: "Войти" })).toBeEnabled();
+      }
+      await page.getByLabel("Логин").fill("student2");
+      await page.getByLabel("Пароль").fill(process.env.SEED_PASSWORD!);
+      await page.getByRole("button", { name: "Войти" }).click();
+      await expect(page.getByText("Слишком много попыток")).toBeVisible();
+      await expect(page).toHaveURL("/login");
+    } finally {
+      await clean();
+    }
+  });
+});

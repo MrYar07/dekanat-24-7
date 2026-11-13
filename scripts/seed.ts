@@ -64,11 +64,12 @@ const MP_COURSES: CourseSpec[] = [
   { discipline: "Дипломатический протокол", teacher: "Голубева", assessment: "credit", slots: [[5, "13:00", "ауд. 412", "seminar"]], scores: [60, 71] },
 ];
 
+// Логин teacher — у преподавателя английского: он ведёт группы обоих тестовых студентов.
 const TEACHERS: Record<string, { lastName: string; firstName: string; middleName: string; login: string; position: string }> = {
-  Лазарева: { lastName: "Лазарева", firstName: "Ирина", middleName: "Олеговна", login: "teacher", position: "Доцент кафедры мировой экономики" },
+  Лазарева: { lastName: "Лазарева", firstName: "Ирина", middleName: "Олеговна", login: "t-lazareva", position: "Доцент кафедры мировой экономики" },
   Орлов: { lastName: "Орлов", firstName: "Кирилл", middleName: "Семёнович", login: "t-orlov", position: "Профессор кафедры мировой экономики" },
   Белова: { lastName: "Белова", firstName: "Наталья", middleName: "Викторовна", login: "t-belova", position: "Доцент кафедры количественных методов" },
-  Ким: { lastName: "Ким", firstName: "Артур", middleName: "Валерьевич", login: "t-kim", position: "Старший преподаватель кафедры английского языка" },
+  Ким: { lastName: "Ким", firstName: "Артур", middleName: "Валерьевич", login: "teacher", position: "Старший преподаватель кафедры английского языка" },
   Сафонова: { lastName: "Сафонова", firstName: "Елена", middleName: "Петровна", login: "t-safonova", position: "Доцент кафедры финансов" },
   Демидов: { lastName: "Демидов", firstName: "Глеб", middleName: "Романович", login: "t-demidov", position: "Доцент кафедры международного права" },
   Ромашова: { lastName: "Ромашова", firstName: "Ольга", middleName: "Сергеевна", login: "t-romashova", position: "Профессор кафедры теории международных отношений" },

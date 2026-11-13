@@ -9,6 +9,7 @@ import { loginAttempts, users } from "@/db/schema";
 import { getDummyHash, verifyPassword } from "@/lib/auth/password";
 import { createSession, deleteCurrentSession } from "@/lib/auth/session";
 import { homePathFor } from "@/lib/auth/dal";
+import { isLockedOut, WINDOW_MS } from "@/lib/auth/throttle";
 
 export type LoginState = { error?: string; login?: string };
 
@@ -16,10 +17,6 @@ const schema = z.object({
   login: z.string().trim().toLowerCase().min(1, "Введи логин").max(64),
   password: z.string().min(1, "Введи пароль").max(256),
 });
-
-const WINDOW_MS = 15 * 60 * 1000;
-const MAX_FAILS_PER_LOGIN = 5;
-const MAX_FAILS_PER_IP = 20;
 
 async function clientIp(): Promise<string> {
   const h = await headers();
@@ -39,11 +36,19 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
 
   const since = new Date(Date.now() - WINDOW_MS);
   const recentFails = and(eq(loginAttempts.success, false), gt(loginAttempts.createdAt, since));
-  const [[byLogin], [byIp]] = await Promise.all([
-    db.select({ n: count() }).from(loginAttempts).where(and(recentFails, eq(loginAttempts.login, loginName))),
-    db.select({ n: count() }).from(loginAttempts).where(and(recentFails, eq(loginAttempts.ip, ip))),
+  const fails = (...where: Parameters<typeof and>) =>
+    db
+      .select({ n: count() })
+      .from(loginAttempts)
+      .where(and(recentFails, ...where))
+      .then(([row]) => row?.n ?? 0);
+  // Пределы и то, почему счёт идёт по паре «логин + адрес», — в lib/auth/throttle.ts.
+  const [pair, byIp, byLogin] = await Promise.all([
+    fails(eq(loginAttempts.login, loginName), eq(loginAttempts.ip, ip)),
+    fails(eq(loginAttempts.ip, ip)),
+    fails(eq(loginAttempts.login, loginName)),
   ]);
-  if (byLogin.n >= MAX_FAILS_PER_LOGIN || byIp.n >= MAX_FAILS_PER_IP) {
+  if (isLockedOut({ pair, ip: byIp, login: byLogin })) {
     return { error: "Слишком много попыток. Подожди 15 минут и попробуй снова.", login: loginName };
   }
 

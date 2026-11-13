@@ -46,21 +46,23 @@ test.describe("сценарий 3: справка с печатью", () => {
 });
 
 test.describe("сценарий 4: живые оценки", () => {
-  test("преподаватель ставит балл за срез, студент получает уведомление и видит балл", async ({ page, browser }) => {
+  test("преподаватель ставит балл за срез, студент получает уведомление и автомат по зачёту", async ({ page, browser }) => {
     const clean = () =>
       query(
-        `delete from checkpoint_scores where student_id = (select id from users where login = 'student1')
+        `delete from checkpoint_scores where student_id = (select id from users where login = 'student2')
          and checkpoint_id in (select c.id from checkpoints c join courses k on k.id = c.course_id
-           join disciplines d on d.id = k.discipline_id where d.name = 'Макроэкономика' and c.number = 3)`,
+           join disciplines d on d.id = k.discipline_id where d.name = 'Английский язык' and c.number = 3)`,
       );
     await clean();
     try {
       await login(page, "teacher");
-      await page.getByRole("link", { name: /Макроэкономика/ }).click();
+      // teacher ведёт английский в группах обоих тестовых студентов.
+      await expect(page.getByRole("link", { name: /Английский язык.*ГЭ-24-1/ })).toBeVisible();
+      await page.getByRole("link", { name: /Английский язык.*МП-23-2/ }).click();
       await page.getByRole("link", { name: /Срез 3/ }).click();
       await expect(page).toHaveURL(/cp=3/);
 
-      const field = page.getByLabel("Северова Алина Игоревна, балл за срез 3");
+      const field = page.getByLabel("Ветров Матвей Андреевич, балл за срез 3");
       await field.fill("101");
       await page.getByRole("button", { name: "Сохранить срез 3" }).click();
       await expect(page.getByRole("status")).toContainText("от 0 до 100");
@@ -70,13 +72,16 @@ test.describe("сценарий 4: живые оценки", () => {
       await expect(page.getByRole("status")).toContainText("Сохранено: 1 балл.");
 
       const student = await (await browser.newContext()).newPage();
-      await login(student, "student1");
+      await login(student, "student2");
       await student.goto("/notifications?kind=score");
-      await expect(student.getByRole("link", { name: /Новый балл: Макроэкономика/ }).first()).toContainText("Срез 3 — 95");
+      await expect(student.getByRole("link", { name: /Новый балл: Английский язык/ }).first()).toContainText("Срез 3 — 95");
+      // Срезы 76, 70 и 95 — в среднем больше 75: зачёт ставится автоматом.
+      await student.goto("/grades");
+      await expect(student.getByRole("region", { name: "Английский язык" })).toContainText("автомат");
       await student.context().close();
     } finally {
       await clean();
-      await query("delete from notifications where title = 'Новый балл: Макроэкономика' and body = 'Срез 3 — 95'");
+      await query("delete from notifications where title = 'Новый балл: Английский язык' and body = 'Срез 3 — 95'");
     }
   });
 });
