@@ -19,14 +19,14 @@ function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-/** Нижняя панель на телефоне, боковая колонка на широком экране. */
+/** Нижняя панель вкладок на телефоне. На широком экране разделы живут на обложке (components/cover.tsx). */
 export function StudentNav({ unread = 0 }: { unread?: number }) {
   const pathname = usePathname();
 
   return (
     <nav
       aria-label="Разделы кабинета"
-      className="border-border bg-bg fixed inset-x-0 bottom-0 z-20 border-t pb-[env(safe-area-inset-bottom)] md:static md:w-56 md:shrink-0 md:border-t-0 md:bg-transparent md:pb-0"
+      className="border-border bg-bg fixed inset-x-0 bottom-0 z-20 border-t pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul className="mx-auto grid max-w-lg grid-cols-5 md:max-w-none md:grid-cols-1 md:gap-0.5">
         {STUDENT_NAV.map(({ href, label, short, icon: Icon }) => {

@@ -25,6 +25,12 @@
   --stamp: #5a3ea6;
   --notice: #e1e8e3;
   --notice-ink: #3f4a44;
+  /* Обложка зачётки: боковая панель и шапка на телефоне. Тёмно-синий переплёт, бумажный текст. */
+  --cover: #172a5e;
+  --cover-ink: #f2f5fb;
+  --cover-muted: #b3bfdc;
+  --cover-line: rgb(242 245 251 / 0.18);
+  --cover-hover: rgb(242 245 251 / 0.09);
   color-scheme: light;
 }
 
@@ -56,6 +62,11 @@
     --stamp: #c3b0ff;
     --notice: #212930;
     --notice-ink: #cfd8d3;
+    --cover: #1a2550;
+    --cover-ink: #e7ecf7;
+    --cover-muted: #9fadd0;
+    --cover-line: rgb(231 236 247 / 0.16);
+    --cover-hover: rgb(231 236 247 / 0.08);
     color-scheme: dark;
   }
   :root:not([data-theme="light"]) .only-light {
@@ -86,6 +97,11 @@
   --stamp: #c3b0ff;
   --notice: #212930;
   --notice-ink: #cfd8d3;
+  --cover: #1a2550;
+  --cover-ink: #e7ecf7;
+  --cover-muted: #9fadd0;
+  --cover-line: rgb(231 236 247 / 0.16);
+  --cover-hover: rgb(231 236 247 / 0.08);
   color-scheme: dark;
 }
 :root[data-theme="dark"] .only-light {
@@ -115,6 +131,11 @@
   --color-stamp: var(--stamp);
   --color-notice: var(--notice);
   --color-notice-ink: var(--notice-ink);
+  --color-cover: var(--cover);
+  --color-cover-ink: var(--cover-ink);
+  --color-cover-muted: var(--cover-muted);
+  --color-cover-line: var(--cover-line);
+  --color-cover-hover: var(--cover-hover);
   --font-sans: "Golos Text Variable", system-ui, sans-serif;
   --font-serif: "PT Serif", Georgia, serif;
 }
@@ -155,6 +176,10 @@ dd {
 :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
+}
+/* На обложке синее кольцо не видно: там оно бумажного цвета. */
+.cover :focus-visible {
+  outline-color: var(--cover-ink);
 }
 
 /* Смена темы: все цвета меняются разом, поэтому переходы на этот кадр выключаются (см. components/theme.tsx). */

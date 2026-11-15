@@ -3,17 +3,17 @@
 import { mkdirSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
-const BRAND = "#1d3a8a";
-const PAPER = "#fbfcfa";
+const BRAND = "#172a5e";
+const PAPER = "#f2f5fb";
 
-/** Циферблат в квадрате 28×28 с центром (14, 14). scale — доля поля, которую занимает знак. */
+/** Знак из components/logo.tsx в квадрате 32×32. scale — доля поля, которую занимает знак. */
 function icon(scale: number, radius: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <rect width="100" height="100" rx="${radius}" fill="${BRAND}"/>
-  <g transform="translate(50 50) scale(${(100 * scale) / 28}) translate(-14 -14)" fill="none" stroke="${PAPER}" stroke-linecap="round">
-    <circle cx="14" cy="14" r="12.5" stroke-width="2"/>
-    <circle cx="14" cy="14" r="8.5" stroke-width="1" stroke-dasharray="1.5 2.5"/>
-    <path d="M14 8.5V14l3.5 2.2" stroke-width="2"/>
+  <g transform="translate(50 50) scale(${(100 * scale) / 32}) translate(-16 -16)" fill="none" stroke="${PAPER}" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="16" cy="16" r="14" stroke-width="2"/>
+    <circle cx="16" cy="16" r="10.3" stroke-width="1.5" stroke-dasharray="0.1 5.293"/>
+    <path d="M11.6 12.4 16 18l6.4-8.2" stroke-width="2.5"/>
   </g>
 </svg>`;
 }

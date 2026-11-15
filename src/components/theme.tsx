@@ -28,7 +28,7 @@ const effectiveTheme = (): Theme =>
   (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 
 /** Кнопка в шапке: светлая ↔ тёмная. Какой значок показать, решает CSS, поэтому сервер и браузер не расходятся. */
-export function ThemeToggle({ className = "" }: { className?: string }) {
+export function ThemeToggle({ className = "", tone = "paper" }: { className?: string; tone?: "paper" | "cover" }) {
   const router = useRouter();
   return (
     <button
@@ -40,7 +40,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
         // Цвет панели браузера приходит с сервера: обновляем его под новую тему.
         router.refresh();
       }}
-      className={`text-muted hover:text-text rounded-full p-2 ${className}`}
+      className={`rounded-full p-2 ${tone === "cover" ? "text-cover-muted hover:text-cover-ink" : "text-muted hover:text-text"} ${className}`}
     >
       <Moon className="only-light size-5" aria-hidden="true" />
       <Sun className="only-dark size-5" aria-hidden="true" />

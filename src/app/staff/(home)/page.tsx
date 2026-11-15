@@ -36,7 +36,7 @@ async function DeanQueue({ filter }: { filter: QueueFilter }) {
   return (
     <>
       <PageTitle
-        eyebrow="деканат"
+        eyebrow={<span className="md:hidden">деканат</span>}
         hint={waiting > 0 ? `Ждут решения: ${waiting}. Сверху те, кто подал раньше.` : "Все заявки разобраны."}
       >
         Заявки студентов
@@ -135,7 +135,7 @@ async function TeacherCourses({ name }: { name: string }) {
   const courses = await getMyCourses();
   return (
     <>
-      <PageTitle eyebrow="преподаватель" hint="Курсы этого триместра. Балл за срез студент видит сразу и получает уведомление.">
+      <PageTitle eyebrow={<span className="md:hidden">преподаватель</span>} hint="Курсы этого триместра. Балл за срез студент видит сразу и получает уведомление.">
         {name}
       </PageTitle>
 
