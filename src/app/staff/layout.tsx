@@ -27,9 +27,10 @@ export default async function StaffLayout({ children }: { children: React.ReactN
           </p>
           <ThemeToggle />
           <form action={logout}>
-            <Button type="submit" variant="ghost" className="px-3 text-sm">
-              <LogOut className="size-4" aria-hidden="true" />
-              Выйти
+            {/* На телефоне рядом логотип и кнопка темы: подпись не помещается в 360 px, остаётся значок. */}
+            <Button type="submit" variant="ghost" aria-label="Выйти" className="px-2.5 text-sm sm:px-3">
+              <LogOut className="size-5 sm:size-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Выйти</span>
             </Button>
           </form>
         </div>

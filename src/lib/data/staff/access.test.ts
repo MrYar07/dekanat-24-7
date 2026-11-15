@@ -13,6 +13,7 @@ const ROLE: Record<string, string> = {
   "dean-achievements.ts": "dean_office",
   "dean-announcements.ts": "dean_office",
   "dean-schedule.ts": "dean_office",
+  "dean-stats.ts": "dean_office",
   "teacher.ts": "teacher",
 };
 

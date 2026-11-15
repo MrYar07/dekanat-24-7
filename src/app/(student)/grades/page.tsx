@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Calculator, Check, Circle, ExternalLink, FileText, Paperclip, Plus, TrendingUp } from "lucide-react";
+import { Calculator, Check, Circle, ExternalLink, FileText, Paperclip, Plus, Target, TrendingUp } from "lucide-react";
 import { AchievementStatusBadge } from "@/components/achievement-status";
 import { AnimatedNumber } from "@/components/animated-number";
 import { buttonClass } from "@/components/ui/button";
@@ -8,10 +8,12 @@ import { Callout } from "@/components/ui/callout";
 import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
 import { EmptyState } from "@/components/ui/states";
+import { StatusBadge } from "@/components/ui/status";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { getGrades } from "@/lib/data/learning";
 import { MARK_LABEL, markFor, neededOnExam, neededOnRemainingCheckpoints, type GradingSettings } from "@/lib/grading";
+import { healthOf } from "@/lib/grading/health";
 
 export const metadata: Metadata = { title: "Успеваемость" };
 
@@ -58,25 +60,32 @@ function hint(c: Course, s: GradingSettings): { lead: string; text: string } | n
 
 function CourseCard({ c, s, week }: { c: Course; s: GradingSettings; week: number }) {
   const h = hint(c, s);
+  const health = healthOf(c.input, c.result, c.plannedCheckpoints, s);
   const allGraded = c.checkpoints.every((cp) => cp.score !== null);
   const att = c.attendance;
   return (
     <Card aria-labelledby={`course-${c.id}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 id={`course-${c.id}`} className="font-serif text-lg leading-snug font-bold">
+          <h3 id={`course-${c.id}`} className="font-serif text-lg leading-snug font-bold break-words hyphens-auto">
             {c.discipline}
           </h3>
           <p className="text-muted text-sm">
             {c.teacher} · {c.assessment === "exam" ? "экзамен" : "зачёт"}
           </p>
+          {/* Светофор: слово и значок, цвет их только дублирует. */}
+          {health && (
+            <p className="mt-1.5">
+              <StatusBadge tone={health.level === 0 ? "ok" : "warn"}>{health.label}</StatusBadge>
+            </p>
+          )}
         </div>
         {c.result && (
           <div className="shrink-0 text-right">
             <p className="font-serif text-2xl leading-none font-bold tabular-nums">{one.format(c.result.score)}</p>
             <p className="text-muted mt-1 text-xs">
               {MARK_LABEL[markFor(c.result.score, s)]}
-              {c.result.forecast && ", прогноз"}
+              {c.result.forecast && <span className="block">прогноз</span>}
             </p>
           </div>
         )}
@@ -121,11 +130,18 @@ function CourseCard({ c, s, week }: { c: Course; s: GradingSettings; week: numbe
         {allGraded && c.result?.session.auto && <LedgerRow label="Зачёт" value="автомат" />}
       </Ledger>
 
-      {h && (
-        <div className="border-border mt-4 border-t pt-3">
-          <Callout tone="info" lead={h.lead}>
-            {h.text}
-          </Callout>
+      {(h || (health && health.reasons.length > 0)) && (
+        <div className="border-border mt-4 space-y-2 border-t pt-3">
+          {health?.reasons.map((reason) => (
+            <p key={reason} className="text-sm leading-snug">
+              {reason}
+            </p>
+          ))}
+          {h && (
+            <Callout tone="info" lead={h.lead}>
+              {h.text}
+            </Callout>
+          )}
         </div>
       )}
     </Card>
@@ -148,6 +164,7 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
   }
 
   const r = g.rating;
+  const attention = g.courses.filter((c) => (healthOf(c.input, c.result, c.plannedCheckpoints, s)?.level ?? 0) > 0).length;
   const approved = g.achievements.filter((a) => a.status === "approved");
 
   return (
@@ -183,6 +200,10 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
               <Link href="/grades/rating" className="text-brand inline-flex items-center gap-1.5 text-sm font-semibold hover:underline">
                 <TrendingUp className="size-4" aria-hidden="true" />
                 Из чего он складывается
+              </Link>
+              <Link href="/grades/goal" className="text-brand inline-flex items-center gap-1.5 text-sm font-semibold hover:underline">
+                <Target className="size-4" aria-hidden="true" />
+                Путь к цели
               </Link>
               <Link href="/grades/what-if" className="text-brand inline-flex items-center gap-1.5 text-sm font-semibold hover:underline">
                 <Calculator className="size-4" aria-hidden="true" />
@@ -222,7 +243,10 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
             {g.goal && g.goal.gap > 0 && (
               <p className="mt-4 text-sm">
                 До порога «{g.goal.label}» не хватает <b>{one.format(g.goal.gap)}</b>{" "}
-                {g.goal.basis === "base" ? "балла по среднему без бонусов" : "балла рейтинга"}.
+                {g.goal.basis === "base" ? "балла по среднему без бонусов" : "балла рейтинга"}.{" "}
+                <Link href="/grades/goal" className="text-brand font-semibold hover:underline">
+                  Как дойти
+                </Link>
               </p>
             )}
           </div>
@@ -233,6 +257,11 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
         <SectionTitle>
           <span id="courses-title">Дисциплины</span>
         </SectionTitle>
+        {attention > 0 && (
+          <p className="mb-3 text-sm">
+            Внимания {attention === 1 ? "требует" : "требуют"} {attention} из {g.courses.length}: причина написана в карточке.
+          </p>
+        )}
         <div className="grid gap-4 lg:grid-cols-2">
           {g.courses.map((c) => (
             <CourseCard key={c.id} c={c} s={s} week={g.term!.week} />

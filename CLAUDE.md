@@ -43,7 +43,7 @@
 - `src/lib/auth/` — пароли, сессии, слой доступа (`dal.ts`: `requireUser`, `requireRole`).
 - `src/components/ui/` — компоненты дизайн-системы: кнопки, поля, статусы и печать, ведомость, пометки, пустое состояние, ошибка и заглушки загрузки.
 - `src/lib/data/` — запросы к данным. Функции для студента **не принимают id**: студент берётся из сессии.
-- `src/lib/grading/` — расчёт по GRADING.md, тесты рядом.
+- `src/lib/grading/` — расчёт по GRADING.md, тесты рядом. Там же `path.ts` («Путь к цели»), `health.ts` (светофор), `scenario.ts` (калькулятор).
 - `src/lib/achievements/` — правила подачи достижений и решения деканата, тесты рядом.
 - `src/lib/demo/` — демо-аккаунты и сценарии «Путеводителя» для жюри; `src/components/demo-guide.tsx` — сам путеводитель.
 - `src/lib/theme.ts`, `src/components/theme.tsx` — тема оформления (cookie + `data-theme`), анимации — в конце `globals.css`.

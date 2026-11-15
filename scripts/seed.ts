@@ -439,6 +439,77 @@ async function main() {
     ]);
     await issue(study2, student2.id, "student2", "в военный комиссариат");
 
+    // История кабинета: справки и заявления одногруппников за прошлые недели. Нужна сводке деканата и вкладкам
+    // «Готовы» и «Закрыты»: без неё кабинет выглядит так, будто им пользуются два человека.
+    // Свой генератор, чтобы история не сдвигала баллы и рейтинги выше.
+    const historyRandom = rng(2026_11);
+    const between = (min: number, max: number) => min + Math.floor(historyRandom() * (max - min + 1));
+    const PURPOSES = ["по месту работы родителей", "в банк", "в посольство для оформления визы", "в органы социальной защиты", "в военный комиссариат"];
+    const cohorts = [
+      { ids: geMates, names: CLASSMATES.ge, prefix: "ge24", faculty: fge.name, program: econ, group: ge2 },
+      { ids: mpMates, names: CLASSMATES.mp, prefix: "mp23", faculty: fmp.name, program: polit, group: mp3 },
+    ];
+    for (const cohort of cohorts) {
+      for (const [i, mateId] of cohort.ids.entries()) {
+        const [lastName, firstName, middleName] = cohort.names[i];
+        // Три из четырёх хотя бы раз брали справку об обучении: она выдаётся сразу.
+        if (historyRandom() < 0.75) {
+          const hours = 24 * between(2, 45) + between(0, 9);
+          const purpose = PURPOSES[between(0, PURPOSES.length - 1)];
+          const r = await request(mateId, "study", { purpose }, [
+            { status: "submitted", hoursAgo: hours },
+            { status: "ready", hoursAgo: hours, note: "Сформирована автоматически" },
+            { status: "issued", hoursAgo: hours, note: "Скачана в PDF" },
+          ]);
+          await tx.insert(s.issuedDocuments).values({
+            requestId: r.id,
+            studentId: mateId,
+            code: randomBytes(16).toString("base64url"),
+            snapshot: {
+              kind: "study",
+              student: {
+                lastName,
+                firstName,
+                middleName,
+                recordBookNumber: `${cohort.prefix.toUpperCase()}-${String(i + 1).padStart(4, "0")}`,
+                faculty: cohort.faculty,
+                programCode: cohort.program.code,
+                program: cohort.program.name,
+                group: cohort.group.name,
+                course: cohort.group.course,
+                isPaid: i % 3 === 0,
+              },
+              purpose,
+            },
+            issuedAt: r.issuedAt,
+          });
+        }
+        // Каждый третий заказывал документ с печатью: его ведёт деканат.
+        if (historyRandom() < 0.35) {
+          const hours = 24 * between(4, 40) + between(0, 9);
+          const taken = hours - between(2, 20);
+          const done = taken - between(8, 44);
+          const scholarship = historyRandom() < 0.6;
+          const outcome = historyRandom();
+          await request(
+            mateId,
+            scholarship ? "scholarship" : "academic",
+            scholarship ? { period: "текущий триместр", copies: 1 } : { purpose: "для подачи на стажировку", copies: 1 },
+            [
+              { status: "submitted", hoursAgo: hours },
+              { status: "in_review", hoursAgo: taken },
+              ...(outcome < 0.12
+                ? [{ status: "rejected" as const, hoursAgo: done, note: "Нет данных о стипендии за этот период. Уточните период и подайте заявку снова" }]
+                : [
+                    { status: "ready" as const, hoursAgo: done, note: "Забрать в каб. 214, печать уже стоит" },
+                    ...(outcome < 0.8 ? [{ status: "issued" as const, hoursAgo: Math.max(1, done - between(3, 30)) }] : []),
+                  ]),
+            ],
+          );
+        }
+      }
+    }
+
     // Объявления и уведомления
 
     const week11 = addDays(termStart, 70);

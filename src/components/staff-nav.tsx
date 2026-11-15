@@ -16,7 +16,7 @@ export function DeanNav() {
   // «Заявки» — это очередь (/staff) и карточки из неё: заявка на документ и достижение.
   const isActive = (href: string) =>
     href === "/staff"
-      ? pathname === "/staff" || pathname.startsWith("/staff/requests") || pathname.startsWith("/staff/achievements")
+      ? pathname === "/staff" || ["/staff/requests", "/staff/achievements", "/staff/stats"].some((p) => pathname.startsWith(p))
       : pathname.startsWith(href);
 
   return (

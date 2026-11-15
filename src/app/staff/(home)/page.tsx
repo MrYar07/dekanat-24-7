@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Award, ChevronRight, Inbox, NotebookPen, Zap } from "lucide-react";
+import { Award, ChartNoAxesColumn, ChevronRight, Inbox, NotebookPen, Zap } from "lucide-react";
 import { AchievementStatusBadge } from "@/components/achievement-status";
 import { RequestStatusBadge } from "@/components/request-status";
 import { FilterChip, FilterChips } from "@/components/ui/filter-chips";
@@ -9,6 +9,7 @@ import { PageTitle } from "@/components/ui/typography";
 import { requireRole } from "@/lib/auth/dal";
 import { getRequestQueue, isQueueFilter, QUEUE_FILTERS, type QueueFilter } from "@/lib/data/staff/dean";
 import { getAchievementQueue } from "@/lib/data/staff/dean-achievements";
+import { getDeanStats } from "@/lib/data/staff/dean-stats";
 import { getMyCourses } from "@/lib/data/staff/teacher";
 
 export const metadata: Metadata = { title: "Кабинет сотрудника" };
@@ -24,7 +25,7 @@ const EMPTY: Record<QueueFilter, string> = {
 
 async function DeanQueue({ filter }: { filter: QueueFilter }) {
   // Одна очередь на всё, что ждёт решения деканата: заявки на документы и достижения для рейтинга.
-  const [requests, achievements] = await Promise.all([getRequestQueue(filter), getAchievementQueue(filter)]);
+  const [requests, achievements, stats] = await Promise.all([getRequestQueue(filter), getAchievementQueue(filter), getDeanStats()]);
   const waiting = requests.counts.active + achievements.counts.active;
   const items = [
     ...requests.items.map((r) => ({ ...r, source: "request" as const })),
@@ -40,6 +41,18 @@ async function DeanQueue({ filter }: { filter: QueueFilter }) {
       >
         Заявки студентов
       </PageTitle>
+
+      <Link
+        href="/staff/stats"
+        className="border-border bg-surface hover:bg-surface-2 mb-5 flex items-center gap-3 rounded-xl border px-4 py-3 text-sm"
+      >
+        <ChartNoAxesColumn className="text-brand size-5 shrink-0" aria-hidden="true" />
+        <span className="min-w-0 flex-1">
+          Походов в деканат не понадобилось: <b className="font-serif text-base tabular-nums">{stats.visitsSaved}</b>
+          <span className="text-muted block text-xs">Сводка: что кабинет изменил для студентов и деканата</span>
+        </span>
+        <ChevronRight className="text-muted size-5 shrink-0" aria-hidden="true" />
+      </Link>
 
       <div className="mb-5">
         <FilterChips label="Статус заявок">
