@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/field";
 import type { LessonFormState } from "../actions";
 
-const CONTROL = "border-border bg-surface focus:border-brand mt-1 block w-full rounded-lg border px-3.5 py-3 text-base outline-none";
+const CONTROL = "border-border-strong bg-surface focus:border-brand mt-1 block w-full rounded-lg border px-3.5 py-3 text-base";
 
 const KINDS = [
   { value: "moved", label: "Перенести", submit: "Перенести пару" },

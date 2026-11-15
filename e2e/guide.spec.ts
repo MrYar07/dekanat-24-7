@@ -113,11 +113,11 @@ test.describe("оформление", () => {
     await page.goto("/login");
     const html = page.locator("html");
     const paper = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-    expect(await paper()).toBe("rgb(247, 243, 234)");
+    expect(await paper()).toBe("rgb(238, 242, 239)");
 
     await page.getByRole("button", { name: "Сменить тему: светлая или тёмная" }).click();
     await expect(html).toHaveAttribute("data-theme", "dark");
-    expect(await paper()).toBe("rgb(22, 20, 15)");
+    expect(await paper()).toBe("rgb(16, 20, 23)");
     await page.reload();
     await expect(html).toHaveAttribute("data-theme", "dark");
 
@@ -125,7 +125,7 @@ test.describe("оформление", () => {
     await page.emulateMedia({ colorScheme: "dark" });
     await page.getByRole("button", { name: "Сменить тему: светлая или тёмная" }).click();
     await expect(html).toHaveAttribute("data-theme", "light");
-    expect(await paper()).toBe("rgb(247, 243, 234)");
+    expect(await paper()).toBe("rgb(238, 242, 239)");
   });
 
   test("«Как в системе» в профиле возвращает тему системы", async ({ page }) => {
@@ -136,7 +136,34 @@ test.describe("оформление", () => {
     await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
     await page.getByText("Как в системе", { exact: true }).click();
     await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
-    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(22, 20, 15)");
+    expect(await page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe("rgb(16, 20, 23)");
+  });
+
+  test("на 320 px страницы не прокручиваются вбок", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 700 });
+    await login(page, "student1");
+    for (const path of ["/", "/schedule", "/grades", "/grades/goal", "/requests", "/notifications", "/profile"]) {
+      await page.goto(path);
+      const width = await page.evaluate(() => document.documentElement.scrollWidth);
+      expect(width, path).toBeLessThanOrEqual(320);
+    }
+  });
+
+  test("с клавиатуры: первая остановка — «Перейти к содержимому», у поля в фокусе видно кольцо", async ({ page }) => {
+    await page.goto("/login");
+    await page.keyboard.press("Tab");
+    const skip = page.getByRole("link", { name: "Перейти к содержимому" });
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
+
+    // Фокус в поле: браузерное кольцо не отключено, граница поля заметна на фоне листа.
+    await page.getByLabel("Логин").focus();
+    const ring = await page.getByLabel("Логин").evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { style: cs.outlineStyle, width: cs.outlineWidth };
+    });
+    expect(ring.style).not.toBe("none");
+    expect(parseFloat(ring.width)).toBeGreaterThanOrEqual(2);
   });
 
   test("манифест и значки открыты без входа", async ({ request }) => {

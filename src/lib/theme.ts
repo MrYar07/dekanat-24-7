@@ -5,6 +5,6 @@ export const THEME_COOKIE = "d247_theme";
 export const THEMES = ["light", "dark"] as const;
 export type Theme = (typeof THEMES)[number];
 /** Цвет панели браузера: тот же, что фон страницы в globals.css. */
-export const THEME_COLOR: Record<Theme, string> = { light: "#f7f3ea", dark: "#16140f" };
+export const THEME_COLOR: Record<Theme, string> = { light: "#eef2ef", dark: "#101417" };
 
 export const isTheme = (v: unknown): v is Theme => typeof v === "string" && (THEMES as readonly string[]).includes(v);

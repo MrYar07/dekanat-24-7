@@ -21,7 +21,7 @@ export function TextField({
         name={name}
         aria-invalid={error ? true : undefined}
         aria-describedby={errorId}
-        className="border-border bg-surface focus:border-brand aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border px-3.5 py-3 text-base outline-none"
+        className="border-border-strong bg-surface focus:border-brand aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border px-3.5 py-3 text-base"
         {...props}
       />
       {error && (

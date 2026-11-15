@@ -43,6 +43,8 @@ test.describe("уведомления: лента", () => {
     // Метка в окне: если страница перезагрузится, она пропадёт.
     await page.evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true));
     await page.goto("/");
+    // Плашка появляется, только если уведомление пришло после первого опроса этой страницы: ждём его отметку.
+    await expect(page.getByRole("status")).toHaveAttribute("data-ready", "true");
     await page.evaluate(() => ((window as unknown as { __noReload: boolean }).__noReload = true));
 
     const title = `Новый балл: тест ${Date.now()}`;

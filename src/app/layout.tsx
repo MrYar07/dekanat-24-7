@@ -45,6 +45,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   return (
     <html lang="ru" data-theme={theme ?? undefined}>
       <body className="min-h-dvh antialiased">
+        <a
+          href="#main"
+          className="bg-brand text-brand-ink sr-only rounded-lg px-4 py-2 text-sm font-semibold focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50"
+        >
+          Перейти к содержимому
+        </a>
         <ConceptBanner />
         {children}
         {/* key: после переключения аккаунта путеводитель начинается закрытым. */}

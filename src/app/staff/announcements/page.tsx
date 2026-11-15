@@ -22,7 +22,7 @@ export default async function AnnouncementsPage() {
 
   return (
     <>
-      <PageTitle eyebrow="деканат" hint="Объявление появится у студентов на главной, и каждому придёт уведомление.">
+      <PageTitle hint="Объявление появится у студентов на главной, и каждому придёт уведомление.">
         Объявления
       </PageTitle>
 

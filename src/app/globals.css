@@ -1,27 +1,30 @@
 @import "tailwindcss";
 
-/* Дизайн-система «Зачётка»: бумага, чернила и печать.
-   Красный — только для ошибок и переносов. Печать «готово» фиолетовая, как настоящая печать деканата.
-   Витрина компонентов — /design-lab (только в режиме разработки). */
+/* Дизайн-система «Зачётка»: бланк, чернила и печать.
+   Бумага — холодноватая, как у ведомости и бланка с защитной сеткой, а не кремовая. Чернила — синие, как у шариковой
+   ручки. Печать — фиолетовая, как настоящая печать деканата. Красный — только для ошибок и переносов.
+   Контраст всех пар посчитан (docs/process/JOURNAL.md, этап 22). Витрина компонентов — /design-lab (только в разработке). */
 :root {
-  --bg: #f7f3ea;
-  --surface: #fffdf8;
-  --surface-2: #efe8da;
-  --text: #1f1b16;
-  --text-muted: #6b6257;
-  --border: #d9d0bf;
+  --bg: #eef2ef;
+  --surface: #fbfcfa;
+  --surface-2: #e1e8e3;
+  --text: #181c1f;
+  --text-muted: #56605b;
+  /* border — линейки и края листов; border-strong — граница полей ввода (не меньше 3:1 к фону листа). */
+  --border: #c5cfc8;
+  --border-strong: #7d8b84;
   --brand: #1d3a8a;
-  --brand-ink: #fffdf8;
-  --brand-soft: #e4e8f5;
-  --ok: #2f6b3a;
-  --ok-soft: #e3efe2;
-  --warn: #8a5300;
-  --warn-soft: #f6ead2;
+  --brand-ink: #fbfcfa;
+  --brand-soft: #dfe6f5;
+  --ok: #2b6a3c;
+  --ok-soft: #dcebdc;
+  --warn: #7d4f00;
+  --warn-soft: #f3e7cd;
   --danger: #b3261e;
-  --danger-soft: #f8e3df;
+  --danger-soft: #f7e1dd;
   --stamp: #5a3ea6;
-  --notice: #ece4d3;
-  --notice-ink: #4d4336;
+  --notice: #e1e8e3;
+  --notice-ink: #3f4a44;
   color-scheme: light;
 }
 
@@ -34,24 +37,25 @@
    и явным выбором в кабинете (data-theme на <html>, см. src/lib/theme.ts). Значения в обоих блоках одинаковые. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #16140f;
-    --surface: #1e1b15;
-    --surface-2: #2a251c;
-    --text: #efe9dc;
-    --text-muted: #b0a796;
-    --border: #3a3428;
+    --bg: #101417;
+    --surface: #171c20;
+    --surface-2: #212930;
+    --text: #e7ece9;
+    --text-muted: #a2aea8;
+    --border: #2e3940;
+    --border-strong: #6f7f86;
     --brand: #a9bcff;
-    --brand-ink: #16140f;
-    --brand-soft: #232a44;
+    --brand-ink: #101417;
+    --brand-soft: #1f2947;
     --ok: #8fd19b;
-    --ok-soft: #1f2e20;
+    --ok-soft: #1b2b20;
     --warn: #e8b766;
-    --warn-soft: #33281a;
+    --warn-soft: #30281a;
     --danger: #ff8a7a;
-    --danger-soft: #3a1f1b;
+    --danger-soft: #381f1c;
     --stamp: #c3b0ff;
-    --notice: #2a251c;
-    --notice-ink: #d8cfbd;
+    --notice: #212930;
+    --notice-ink: #cfd8d3;
     color-scheme: dark;
   }
   :root:not([data-theme="light"]) .only-light {
@@ -63,24 +67,25 @@
 }
 
 :root[data-theme="dark"] {
-  --bg: #16140f;
-  --surface: #1e1b15;
-  --surface-2: #2a251c;
-  --text: #efe9dc;
-  --text-muted: #b0a796;
-  --border: #3a3428;
+  --bg: #101417;
+  --surface: #171c20;
+  --surface-2: #212930;
+  --text: #e7ece9;
+  --text-muted: #a2aea8;
+  --border: #2e3940;
+  --border-strong: #6f7f86;
   --brand: #a9bcff;
-  --brand-ink: #16140f;
-  --brand-soft: #232a44;
+  --brand-ink: #101417;
+  --brand-soft: #1f2947;
   --ok: #8fd19b;
-  --ok-soft: #1f2e20;
+  --ok-soft: #1b2b20;
   --warn: #e8b766;
-  --warn-soft: #33281a;
+  --warn-soft: #30281a;
   --danger: #ff8a7a;
-  --danger-soft: #3a1f1b;
+  --danger-soft: #381f1c;
   --stamp: #c3b0ff;
-  --notice: #2a251c;
-  --notice-ink: #d8cfbd;
+  --notice: #212930;
+  --notice-ink: #cfd8d3;
   color-scheme: dark;
 }
 :root[data-theme="dark"] .only-light {
@@ -97,6 +102,7 @@
   --color-text: var(--text);
   --color-muted: var(--text-muted);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-brand: var(--brand);
   --color-brand-ink: var(--brand-ink);
   --color-brand-soft: var(--brand-soft);
@@ -113,8 +119,19 @@
   --font-serif: "PT Serif", Georgia, serif;
 }
 
+/* Скругления по роли, а не одно на всё. Лист бланка и поля на нём — почти прямые углы, как у бумаги;
+   мягче только всплывающее окно. Круглыми остаются счётчики, аватар и плавающая кнопка. */
+@theme {
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.375rem;
+  --radius-2xl: 0.625rem;
+}
+
 html {
   -webkit-text-size-adjust: 100%;
+  /* Внизу на телефоне закреплена панель вкладок: элемент в фокусе не должен оказаться под ней. */
+  scroll-padding-block-end: 6rem;
 }
 
 body {
@@ -123,51 +140,35 @@ body {
   font-family: "Golos Text Variable", system-ui, sans-serif;
 }
 
+/* Заголовки не оставляют одно слово на последней строке, абзацы — короткий предлог в конце строки. */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+p,
+li,
+dd {
+  text-wrap: pretty;
+}
+
 :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
 }
 
-/* Движение. Всё короткое и отключается, если человек просил поменьше анимации. */
-
-/* Печать «готово» ставится: падает сверху с лёгким поворотом и чуть пружинит. */
-@keyframes stamp-in {
-  0% {
-    opacity: 0;
-    rotate: -14deg;
-    scale: 1.9;
-  }
-  60% {
-    opacity: 1;
-    rotate: -1deg;
-    scale: 0.94;
-  }
-  100% {
-    opacity: 1;
-    rotate: -3deg;
-    scale: 1;
-  }
-}
-.stamp-in {
-  animation: stamp-in 0.42s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+/* Смена темы: все цвета меняются разом, поэтому переходы на этот кадр выключаются (см. components/theme.tsx). */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
 }
 
-/* Страница появляется при переходе между разделами. */
-@keyframes page-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-.page-in {
-  animation: page-in 0.2s ease-out both;
-}
+/* Движение. Его мало и оно по делу: печать ставится, новое число подсвечивается, окно выезжает.
+   Перемещение и масштаб — только тем, кто не просил поменьше анимации; остальным — проявление. */
 
-/* Число только что изменилось: короткая подсветка. */
+/* Число только что изменилось: короткая подсветка цветом. */
 @keyframes value-flash {
   from {
     color: var(--brand);
@@ -180,25 +181,53 @@ body {
   animation: value-flash 1.4s ease-out both;
 }
 
-@keyframes sheet-in {
+@keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(16px);
   }
   to {
     opacity: 1;
-    transform: none;
   }
 }
+.seal-in,
 .sheet-in {
-  animation: sheet-in 0.22s ease-out both;
+  animation: fade-in 0.2s ease-out both;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .stamp-in,
-  .page-in,
-  .value-flash,
+@media (prefers-reduced-motion: no-preference) {
+  /* Печать ставится: падает сверху с поворотом и чуть пружинит. Один такой момент на экран. */
+  @keyframes seal-in {
+    0% {
+      opacity: 0;
+      rotate: -24deg;
+      scale: 1.8;
+    }
+    60% {
+      opacity: 1;
+      rotate: -6deg;
+      scale: 0.95;
+    }
+    100% {
+      opacity: 1;
+      rotate: -9deg;
+      scale: 1;
+    }
+  }
+  .seal-in {
+    animation: seal-in 0.45s cubic-bezier(0.2, 0, 0, 1) both;
+  }
+
+  @keyframes sheet-in {
+    from {
+      opacity: 0;
+      translate: 0 12px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
   .sheet-in {
-    animation: none;
+    animation: sheet-in 0.3s ease-out both;
   }
 }

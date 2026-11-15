@@ -7,7 +7,7 @@ import { TextField } from "@/components/ui/field";
 import type { AnnouncementFormState } from "../actions";
 
 const CONTROL =
-  "border-border bg-surface focus:border-brand aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border px-3.5 py-3 text-base outline-none";
+  "border-border-strong bg-surface focus:border-brand aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border px-3.5 py-3 text-base";
 
 function plural(n: number, forms: [string, string, string]) {
   const d = n % 10;

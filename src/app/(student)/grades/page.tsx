@@ -97,7 +97,7 @@ function CourseCard({ c, s, week }: { c: Course; s: GradingSettings; week: numbe
             key={cp.number}
             className={`rounded-lg border px-2 py-1.5 text-center ${cp.score === null ? "border-border border-dashed" : "border-border bg-surface-2"}`}
           >
-            <p className="text-muted text-[11px] font-semibold tracking-[0.06em] uppercase">срез {cp.number}</p>
+            <p className="text-muted text-xs">срез {cp.number}</p>
             {cp.score === null ? (
               <p className="text-muted text-sm leading-7">{cp.week < week ? "ждём балл" : `${cp.week}-я нед.`}</p>
             ) : (
@@ -176,7 +176,7 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
       {r && (
         <section className="mb-8 grid gap-6 sm:grid-cols-2" aria-label="Рейтинг">
           <Card>
-            <p className="text-muted text-xs font-semibold tracking-[0.08em] uppercase">
+            <p className="text-muted font-serif text-sm italic">
               Рейтинг триместра{r.forecast && " · прогноз"}
             </p>
             <p className="mt-1 font-serif text-[44px] leading-none font-bold tabular-nums">

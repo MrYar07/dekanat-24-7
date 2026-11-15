@@ -36,7 +36,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
         </div>
       </header>
       {user.role === "dean_office" && <DeanNav />}
-      <main className="pb-10">{children}</main>
+      <main id="main" className="pb-10">{children}</main>
     </div>
   );
 }

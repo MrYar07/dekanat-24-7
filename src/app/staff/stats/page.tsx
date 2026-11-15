@@ -37,7 +37,7 @@ export default async function DeanStatsPage() {
         <ChevronLeft className="size-4" aria-hidden="true" />
         Все заявки
       </Link>
-      <PageTitle eyebrow="деканат" hint="Что кабинет изменил по сравнению с бумажным порядком. Считается по данным кабинета на эту минуту.">
+      <PageTitle hint="Что кабинет изменил по сравнению с бумажным порядком. Считается по данным кабинета на эту минуту.">
         Сводка
       </PageTitle>
 

@@ -82,7 +82,7 @@ export function JournalForm({
               defaultValue={s.score ?? ""}
               placeholder="—"
               aria-label={`${s.name}, балл за срез ${cpNumber}`}
-              className="border-border bg-bg focus:border-brand w-20 shrink-0 [appearance:textfield] rounded-lg border px-3 py-2 text-center font-serif text-lg font-bold tabular-nums outline-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              className="border-border-strong bg-bg focus:border-brand w-20 shrink-0 [appearance:textfield] rounded-lg border px-3 py-2 text-center font-serif text-lg font-bold tabular-nums [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
           </li>
         ))}

@@ -58,7 +58,7 @@ export default async function GoalPage({ searchParams }: { searchParams: Promise
     return (
       <>
         {back}
-        <PageTitle eyebrow="план">Путь к цели</PageTitle>
+        <PageTitle>Путь к цели</PageTitle>
         <EmptyState icon={Target} title="Считать пока не из чего">
           План появится после первого среза.
         </EmptyState>
@@ -111,7 +111,6 @@ export default async function GoalPage({ searchParams }: { searchParams: Promise
     <>
       {back}
       <PageTitle
-        eyebrow="план"
         hint="Кабинет сам подбирает, что получить на оставшихся срезах и экзаменах, чтобы выйти на порог. Считает по тем же правилам, что и рейтинг."
       >
         Путь к цели
@@ -134,7 +133,7 @@ export default async function GoalPage({ searchParams }: { searchParams: Promise
         <Card aria-label="Цель" className="self-start">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-muted text-xs font-semibold tracking-[0.08em] uppercase">Цель</p>
+              <p className="text-muted font-serif text-sm italic">цель</p>
               <p className="mt-1 font-serif text-xl leading-snug font-bold">{goal.label[0].toUpperCase() + goal.label.slice(1)}</p>
             </div>
             {path.reached && <Stamp>есть</Stamp>}

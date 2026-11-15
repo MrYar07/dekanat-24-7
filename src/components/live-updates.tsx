@@ -21,6 +21,8 @@ export function LiveUpdates() {
   const known = useRef<string | null>(null);
   const latestId = useRef<string | null>(null);
   const [toast, setToast] = useState<{ id: string; title: string } | null>(null);
+  // Первый опрос прошёл: с этого момента новое уведомление покажется плашкой. Нужно тестам, чтобы не гадать по времени.
+  const [ready, setReady] = useState(false);
   const onFeed = pathname === "/notifications";
 
   useEffect(() => {
@@ -42,6 +44,7 @@ export function LiveUpdates() {
       const changed = !first && key !== known.current;
       const fresh = !first && state.latest && state.latest.id !== latestId.current && state.latest.unread;
       known.current = key;
+      if (first) setReady(true);
       latestId.current = state.latest?.id ?? null;
       if (changed) router.refresh();
       if (fresh && state.latest) setToast({ id: state.latest.id, title: state.latest.title });
@@ -67,6 +70,7 @@ export function LiveUpdates() {
     <div
       role="status"
       aria-live="polite"
+      data-ready={ready}
       className="pointer-events-none fixed inset-x-4 bottom-24 z-30 flex justify-center md:inset-x-auto md:right-6 md:bottom-6"
     >
       {toast && !onFeed && (

@@ -4,7 +4,7 @@ import { ShieldAlert, ShieldCheck, ShieldX } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
-import { Stamp } from "@/components/ui/status";
+import { Seal } from "@/components/ui/status";
 import { verifyDocument } from "@/lib/data/requests";
 
 export const metadata: Metadata = { title: "Проверка справки" };
@@ -17,7 +17,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
   const doc = await verifyDocument(decodeURIComponent(code));
 
   return (
-    <main className="mx-auto w-full max-w-md px-4 py-10">
+    <main id="main" className="mx-auto w-full max-w-md px-4 py-10">
       <Logo withCaption className="mb-8" />
       <p className="text-muted mb-1 font-serif text-sm italic">проверка подлинности</p>
 
@@ -42,11 +42,14 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
             )}
             {doc.valid ? "Справка действительна" : "Справка отозвана"}
           </h1>
-          <Card className="mt-6">
-            <div className="flex items-start justify-between gap-3">
-              <p className="font-serif text-lg leading-snug font-bold">{doc.type}</p>
-              {doc.valid && <Stamp>подлинная</Stamp>}
-            </div>
+          {/* Печать стоит на углу листа и не закрывает текст. */}
+          <Card className={`relative ${doc.valid ? "mt-12" : "mt-6"}`}>
+            {doc.valid && (
+              <div className="absolute -top-9 right-3">
+                <Seal size={92}>подлинная</Seal>
+              </div>
+            )}
+            <p className={`font-serif text-lg leading-snug font-bold ${doc.valid ? "pr-24" : ""}`}>{doc.type}</p>
             <Ledger className="mt-4">
               <LedgerRow label="Номер" value={doc.number} />
               <LedgerRow label="Выдана" value={<span className="font-sans text-sm font-normal">{day.format(doc.issuedAt)}</span>} />

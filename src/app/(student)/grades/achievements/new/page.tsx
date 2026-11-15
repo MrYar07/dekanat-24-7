@@ -24,7 +24,6 @@ export default async function NewAchievementPage() {
         Успеваемость
       </Link>
       <PageTitle
-        eyebrow="бонус активности"
         hint={`Олимпиады, статьи, соревнования и работа в студенческих организациях дают до +${one.format(s.activityPointsMax * s.activityCoefficient)} к рейтингу триместра. Деканат проверит подтверждение и начислит баллы.`}
       >
         Новое достижение

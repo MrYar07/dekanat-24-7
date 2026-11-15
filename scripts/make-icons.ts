@@ -4,7 +4,7 @@ import { mkdirSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 const BRAND = "#1d3a8a";
-const PAPER = "#fffdf8";
+const PAPER = "#fbfcfa";
 
 /** Циферблат в квадрате 28×28 с центром (14, 14). scale — доля поля, которую занимает знак. */
 function icon(scale: number, radius: number) {

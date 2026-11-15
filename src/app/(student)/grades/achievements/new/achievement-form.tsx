@@ -9,7 +9,7 @@ import type { AchievementFormState } from "../actions";
 export type KindOption = { id: string; direction: string; name: string; maxPoints: number };
 
 const SELECT =
-  "border-border bg-surface focus:border-brand aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border px-3.5 py-3 text-base outline-none";
+  "border-border-strong bg-surface focus:border-brand aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border px-3.5 py-3 text-base";
 const TOO_BIG = "Файл больше 3 МБ. Сожми его или приложи ссылку";
 
 export function AchievementForm({
@@ -112,7 +112,7 @@ export function AchievementForm({
               setFileTouched(true);
               setFileError(f && f.size > FILE_MAX ? TOO_BIG : null);
             }}
-            className="border-border bg-surface text-muted file:bg-surface-2 file:text-text aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border p-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-2 file:text-sm file:font-medium"
+            className="border-border-strong bg-surface text-muted file:bg-surface-2 file:text-text aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border p-2 text-sm file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-2 file:text-sm file:font-medium"
           />
           <p id="field-file-hint" role={fileMessage ? "alert" : undefined} className={`mt-1 text-sm ${fileMessage ? "text-danger" : "text-muted"}`}>
             {fileMessage ?? "Диплом, грамота, сертификат или скриншот публикации. PDF, JPG или PNG до 3 МБ."}

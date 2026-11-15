@@ -1,4 +1,7 @@
-/** Заголовок страницы: засечки, над ним — курсивная строка (дата, раздел), под ним — подсказка. */
+/**
+ * Заголовок страницы: засечки. Строка над ним — только когда она что-то сообщает (дата, номер, срок),
+ * а не называет раздел ещё раз. Подсказка под ним не длиннее 65 знаков в строке.
+ */
 export function PageTitle({
   children,
   eyebrow,
@@ -11,19 +14,24 @@ export function PageTitle({
   return (
     <div className="mb-6">
       {eyebrow && <p className="text-muted mb-1 font-serif text-sm italic">{eyebrow}</p>}
-      <h1 className="font-serif text-[28px] leading-tight font-bold">{children}</h1>
-      {hint && <p className="text-muted mt-1 text-sm">{hint}</p>}
+      <h1 className="font-serif text-[28px] leading-[1.15] font-bold tracking-[-0.01em]">{children}</h1>
+      {hint && <p className="text-muted mt-1.5 max-w-[65ch] text-sm leading-normal">{hint}</p>}
     </div>
   );
 }
 
-/** Заголовок раздела: капитель и линейка до края, как графа в бланке. */
+/** Заголовок раздела: подпись графы и линейка до края листа, как в бланке. Обычный регистр, без капители. */
 export function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="mb-3 flex items-center gap-3">
-      <h2 className="text-muted shrink-0 text-xs font-semibold tracking-[0.14em] uppercase">{children}</h2>
+      <h2 className="text-muted shrink-0 text-[13px] font-semibold">{children}</h2>
       <span aria-hidden="true" className="bg-border h-px flex-1" />
       {action}
     </div>
   );
+}
+
+/** Подпись внутри листа: мелкий курсив, как «(подпись)» под строкой в бланке. */
+export function Caption({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+  return <p className={`text-muted font-serif text-sm italic ${className}`}>{children}</p>;
 }

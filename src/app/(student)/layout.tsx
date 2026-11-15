@@ -39,7 +39,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
         </header>
         <StudentNav unread={unread} />
       </div>
-      <main className="min-w-0 flex-1 px-4 pb-28 md:px-0 md:pt-1 md:pb-6">{children}</main>
+      <main id="main" className="min-w-0 flex-1 px-4 pb-28 md:px-0 md:pt-1 md:pb-6">{children}</main>
       <LiveUpdates />
     </div>
   );

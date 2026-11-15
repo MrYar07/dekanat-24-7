@@ -10,6 +10,8 @@ type Choice = Theme | "system";
 /** Применить тему сразу, без запроса к серверу, и запомнить выбор на год. «system» — забыть выбор. */
 function applyTheme(choice: Choice) {
   const root = document.documentElement;
+  // Все цвета меняются разом: на этот кадр переходы выключаются, иначе смена темы «размазывается».
+  root.classList.add("theme-switching");
   if (choice === "system") {
     delete root.dataset.theme;
     document.cookie = `${THEME_COOKIE}=; path=/; max-age=0; samesite=lax`;
@@ -17,6 +19,8 @@ function applyTheme(choice: Choice) {
     root.dataset.theme = choice;
     document.cookie = `${THEME_COOKIE}=${choice}; path=/; max-age=31536000; samesite=lax`;
   }
+  void root.offsetHeight;
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove("theme-switching")));
 }
 
 const effectiveTheme = (): Theme =>

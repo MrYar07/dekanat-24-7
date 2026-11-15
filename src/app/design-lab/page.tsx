@@ -67,7 +67,7 @@ export default function DesignLabPage() {
           <p className="font-serif text-[28px] leading-tight font-bold">PT Serif — заголовки и цифры: 89,4</p>
           <p className="text-muted font-serif italic">PT Serif курсив — дата и пометки: пятница, 6 ноября</p>
           <p>Golos Text — основной текст интерфейса, подписи, кнопки и формы.</p>
-          <p className="text-muted text-xs font-semibold tracking-[0.14em] uppercase">Капитель — заголовки разделов</p>
+          <p className="text-muted text-[13px] font-semibold">Подпись графы — заголовки разделов</p>
         </div>
       </Block>
 

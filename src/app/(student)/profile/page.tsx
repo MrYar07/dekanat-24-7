@@ -29,7 +29,7 @@ export default async function ProfilePage() {
 
   return (
     <>
-      <PageTitle eyebrow="профиль">Мои данные</PageTitle>
+      <PageTitle>Мои данные</PageTitle>
       <Card>
         <div className="flex items-center gap-4">
           <span

@@ -82,8 +82,8 @@ export default async function TodayPage() {
             </EmptyState>
           ) : (
             <div className="grid gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-              <Card aria-label="Ближайшая пара">
-                <p className="text-muted text-xs font-semibold tracking-[0.08em] uppercase">
+              <Card aria-label="Ближайшая пара" className="self-start">
+                <p className="text-muted font-serif text-sm italic">
                   {day.current === focus ? (
                     <span className="text-ok">Идёт сейчас · до {focus.endsAt}</span>
                   ) : day.isToday ? (

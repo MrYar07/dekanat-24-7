@@ -6,6 +6,7 @@ import { AchievementStatusBadge } from "@/components/achievement-status";
 import { Callout } from "@/components/ui/callout";
 import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
+import { Seal } from "@/components/ui/status";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getAchievementForDean } from "@/lib/data/staff/dean-achievements";
 import { decideAchievementAction } from "../actions";
@@ -98,11 +99,18 @@ export default async function DeanAchievementPage({
             </ul>
           </section>
 
-          <Card aria-label="Решение по достижению">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <p className="text-muted text-sm">Сейчас</p>
-              <AchievementStatusBadge status={a.status} points={a.points} />
-            </div>
+          <Card aria-label="Решение по достижению" className={a.status === "approved" ? "relative mt-10" : ""}>
+            {a.status === "approved" ? (
+              // Засчитанное достижение: печать на углу листа.
+              <div className="absolute -top-9 right-3">
+                <Seal size={92}>засчитано</Seal>
+              </div>
+            ) : (
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <p className="text-muted text-sm">Сейчас</p>
+                <AchievementStatusBadge status={a.status} points={a.points} />
+              </div>
+            )}
             {a.status === "pending" ? (
               <DecisionForm
                 action={decideAchievementAction.bind(null, a.id)}
@@ -111,7 +119,7 @@ export default async function DeanAchievementPage({
                 room={room}
               />
             ) : (
-              <div className="space-y-1 text-sm">
+              <div className={`space-y-1 text-sm ${a.status === "approved" ? "pr-24" : ""}`}>
                 <p>
                   {a.status === "approved" ? `Засчитано ${a.points} из ${a.maxPoints} баллов` : "Отклонено"}
                   {a.decidedAt && <span className="text-muted"> · {when.format(a.decidedAt)}</span>}

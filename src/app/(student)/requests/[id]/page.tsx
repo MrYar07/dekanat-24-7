@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Download } from "lucide-react";
-import { RequestStatusBadge, STATUS_LABEL, type RequestStatus } from "@/components/request-status";
+import { STATUS_LABEL, type RequestStatus } from "@/components/request-status";
 import { buttonClass } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
+import { Seal } from "@/components/ui/status";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getMyRequest } from "@/lib/data/requests";
 import { PAYLOAD_LABELS } from "@/lib/documents/forms";
@@ -75,13 +76,14 @@ export default async function RequestPage({
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-6">
           {doc && url && (
-            <Card aria-label="Документ">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-serif text-lg font-bold">№ {doc.label}</p>
-                  <p className="text-muted text-sm">PDF с QR-кодом проверки подлинности</p>
-                </div>
-                <RequestStatusBadge status={r.status} />
+            <Card aria-label="Документ" className="relative mt-6">
+              {/* Печать стоит на углу листа и не закрывает текст. */}
+              <div className="absolute -top-9 right-3">
+                <Seal size={92}>{r.status === "issued" ? "выдано" : "готово"}</Seal>
+              </div>
+              <div className="pr-24">
+                <p className="font-serif text-lg font-bold">№ {doc.label}</p>
+                <p className="text-muted text-sm">PDF с QR-кодом проверки подлинности</p>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 {/* Обычная ссылка, не <Link>: файл не должен предзагружаться, первое скачивание меняет статус. */}

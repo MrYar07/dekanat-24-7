@@ -45,7 +45,8 @@ test.describe("справка за минуту", () => {
 
     // После скачивания заявка — «выдано».
     await page.reload();
-    await expect(page.getByText("выдано", { exact: true }).first()).toBeVisible();
+    // Статус окончательный: на листе документа стоит круглая печать.
+    await expect(page.getByRole("img", { name: "Печать: выдано" })).toBeVisible();
 
     // Проверка по коду — без входа, в чистом контексте.
     const [{ code }] = await query<{ code: string }>("select code from issued_documents where request_id = $1", [id]);
@@ -53,6 +54,7 @@ test.describe("справка за минуту", () => {
     const gp = await guest.newPage();
     await gp.goto(`/verify/${code}`);
     await expect(gp.getByRole("heading", { name: "Справка действительна" })).toBeVisible();
+    await expect(gp.getByRole("img", { name: "Печать: подлинная" })).toBeVisible();
     await expect(gp.getByText("Северова А. И.")).toBeVisible();
     // Лишнего не показываем: ни имени целиком, ни группы.
     await expect(gp.getByText("Алина")).toHaveCount(0);

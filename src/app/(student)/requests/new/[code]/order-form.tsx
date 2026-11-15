@@ -7,7 +7,7 @@ import type { Field } from "@/lib/documents/forms";
 import type { OrderState } from "../../actions";
 
 const SELECT =
-  "border-border bg-surface focus:border-brand aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border px-3.5 py-3 text-base outline-none";
+  "border-border-strong bg-surface focus:border-brand aria-[invalid=true]:border-danger mt-1 block w-full rounded-lg border px-3.5 py-3 text-base";
 
 function SelectField({
   field,

@@ -100,7 +100,7 @@ export function DecisionForm({
               value={points}
               onChange={(e) => setPoints(e.target.value)}
               aria-describedby="decision-points-hint"
-              className="border-border bg-surface focus:border-brand block w-24 rounded-lg border px-3.5 py-3 text-base tabular-nums outline-none"
+              className="border-border-strong bg-surface focus:border-brand block w-24 rounded-lg border px-3.5 py-3 text-base tabular-nums"
             />
             <span className="text-muted text-sm">из {maxPoints}</span>
             <Button variant="ghost" className="px-2.5 py-1.5 text-sm" onClick={() => setPoints(String(maxPoints))}>
@@ -125,7 +125,7 @@ export function DecisionForm({
           defaultValue={state.note}
           placeholder={o.placeholder}
           aria-describedby="decision-note-hint"
-          className="border-border bg-surface focus:border-brand mt-1 block w-full rounded-lg border px-3.5 py-3 text-base outline-none"
+          className="border-border-strong bg-surface focus:border-brand mt-1 block w-full rounded-lg border px-3.5 py-3 text-base"
         />
         <p id="decision-note-hint" className="text-muted mt-1 text-sm">
           {o.hint}

@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-/** Ряд фильтров-ссылок. На телефоне прокручивается вбок без полосы прокрутки. */
+/** Ряд фильтров-ссылок. На телефоне прокручивается вбок без полосы прокрутки. relative — чтобы скрытый текст счётчика (sr-only) не раздвигал страницу. */
 export function FilterChips({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <nav
       aria-label={label}
-      className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
+      className="relative -mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
     >
       {children}
     </nav>
@@ -30,7 +30,7 @@ export function FilterChip({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm ${
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm ${
         active ? "border-brand bg-brand-soft text-brand font-semibold" : "border-border text-muted hover:text-text"
       }`}
     >

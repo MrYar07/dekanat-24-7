@@ -13,7 +13,7 @@ export default async function LoginPage() {
   if (user) redirect(homePathFor(user.role));
 
   return (
-    <main className="mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-sm flex-col justify-center px-4 py-10">
+    <main id="main" className="mx-auto flex min-h-[calc(100dvh-2rem)] w-full max-w-sm flex-col justify-center px-4 py-10">
       <div className="mb-10 flex items-center justify-between">
         <Logo withCaption />
         <ThemeToggle className="-mr-2" />

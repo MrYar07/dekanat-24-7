@@ -26,7 +26,7 @@ export default async function DeanSchedulePage({ searchParams }: { searchParams:
   if (!term || !group) {
     return (
       <>
-        <PageTitle eyebrow="деканат">Расписание</PageTitle>
+        <PageTitle>Расписание</PageTitle>
         <EmptyState icon={CalendarOff} title="Менять пока нечего">
           Нет текущего триместра или групп.
         </EmptyState>
@@ -41,7 +41,7 @@ export default async function DeanSchedulePage({ searchParams }: { searchParams:
   return (
     <>
       <PageTitle
-        eyebrow={`деканат · ${term.week}-я неделя триместра`}
+        eyebrow={`${term.week}-я неделя триместра`}
         hint="Перенос, отмена или смена аудитории для конкретной пары. Группа сразу увидит изменение и получит уведомление."
       >
         Расписание
@@ -71,7 +71,7 @@ export default async function DeanSchedulePage({ searchParams }: { searchParams:
               const label = `${formatWeekday(d.date)}, ${formatDay(d.date)}, пар: ${d.lessons}`;
               const cell = (
                 <>
-                  <span className="block text-[11px] uppercase">{WEEKDAY[weekdayOf(d.date) - 1]}</span>
+                  <span className="block text-xs">{WEEKDAY[weekdayOf(d.date) - 1]}</span>
                   <span className="block font-serif text-lg leading-tight font-bold tabular-nums">{Number(d.date.slice(8))}</span>
                   <span className="block text-[11px] tabular-nums">{d.lessons > 0 ? `${d.lessons} ${d.lessons === 1 ? "пара" : d.lessons < 5 ? "пары" : "пар"}` : "—"}</span>
                 </>

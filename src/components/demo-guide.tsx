@@ -219,7 +219,7 @@ export function DemoGuide({ me }: { me: DemoLogin }) {
           // Щелчок по затемнению вокруг окна закрывает его.
           if (e.target === e.currentTarget) setOpen(false);
         }}
-        className="bg-surface text-text border-border m-0 mt-auto max-h-[88dvh] w-full max-w-full overflow-y-auto rounded-t-2xl border p-0 backdrop:bg-black/45 md:m-auto md:max-w-lg md:rounded-2xl"
+        className="bg-surface text-text border-border m-0 mt-auto max-h-[88dvh] w-full max-w-full overflow-y-auto overscroll-contain rounded-t-2xl border p-0 backdrop:bg-black/45 md:m-auto md:max-w-lg md:rounded-2xl"
       >
         <div className="p-5">
           <div className="flex items-start justify-between gap-3">
@@ -242,7 +242,7 @@ export function DemoGuide({ me }: { me: DemoLogin }) {
             Восемь сценариев показывают кабинет целиком. Данные сбрасываются каждую ночь, так что ломать не страшно.
           </p>
 
-          <h3 className="text-muted mt-5 mb-2 text-xs font-semibold tracking-[0.14em] uppercase">Смотреть как</h3>
+          <h3 className="text-muted mt-5 mb-2 text-[13px] font-semibold">Смотреть как</h3>
           <div className="grid grid-cols-2 gap-2">
             {DEMO_LOGINS.map((login) => {
               const a = DEMO_ACCOUNTS[login];
@@ -269,7 +269,7 @@ export function DemoGuide({ me }: { me: DemoLogin }) {
           </div>
 
           <div className="mt-6 mb-2 flex items-baseline justify-between gap-3">
-            <h3 className="text-muted text-xs font-semibold tracking-[0.14em] uppercase">Сценарии</h3>
+            <h3 className="text-muted text-[13px] font-semibold">Сценарии</h3>
             <p className="text-muted text-xs tabular-nums">
               пройдено {state.done.length} из {SCENARIOS.length}
             </p>
