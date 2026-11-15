@@ -45,6 +45,8 @@
 - `src/lib/data/` — запросы к данным. Функции для студента **не принимают id**: студент берётся из сессии.
 - `src/lib/grading/` — расчёт по GRADING.md, тесты рядом.
 - `src/lib/achievements/` — правила подачи достижений и решения деканата, тесты рядом.
+- `src/lib/demo/` — демо-аккаунты и сценарии «Путеводителя» для жюри; `src/components/demo-guide.tsx` — сам путеводитель.
+- `src/lib/theme.ts`, `src/components/theme.tsx` — тема оформления (cookie + `data-theme`), анимации — в конце `globals.css`.
 - `src/db/schema.ts` — схема Drizzle, `drizzle/` — миграции, `scripts/seed.ts` — вымышленные данные.
 
 ## Команды

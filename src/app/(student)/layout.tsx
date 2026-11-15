@@ -3,6 +3,7 @@ import { Bell } from "lucide-react";
 import { LiveUpdates } from "@/components/live-updates";
 import { Logo } from "@/components/logo";
 import { StudentNav } from "@/components/nav";
+import { ThemeToggle } from "@/components/theme";
 import { requireRole } from "@/lib/auth/dal";
 import { getUnreadCount } from "@/lib/data/learning";
 
@@ -17,21 +18,24 @@ export default async function StudentLayout({ children }: { children: React.Reac
           <Link href="/" aria-label="Деканат 24/7, на главную">
             <Logo withCaption />
           </Link>
-          <Link
-            href="/notifications"
-            aria-label={unread > 0 ? `Уведомления, непрочитанных: ${unread}` : "Уведомления"}
-            className="text-muted hover:text-text relative rounded-full p-2 md:hidden"
-          >
-            <Bell className="size-6" aria-hidden="true" />
-            {unread > 0 && (
-              <span
-                aria-hidden="true"
-                className="bg-brand text-brand-ink absolute top-0.5 right-0.5 grid min-w-[18px] place-items-center rounded-full px-1 text-[11px] leading-[18px] font-bold tabular-nums"
-              >
-                {unread > 9 ? "9+" : unread}
-              </span>
-            )}
-          </Link>
+          <div className="flex items-center">
+            <ThemeToggle />
+            <Link
+              href="/notifications"
+              aria-label={unread > 0 ? `Уведомления, непрочитанных: ${unread}` : "Уведомления"}
+              className="text-muted hover:text-text relative rounded-full p-2 md:hidden"
+            >
+              <Bell className="size-6" aria-hidden="true" />
+              {unread > 0 && (
+                <span
+                  aria-hidden="true"
+                  className="bg-brand text-brand-ink absolute top-0.5 right-0.5 grid min-w-[18px] place-items-center rounded-full px-1 text-[11px] leading-[18px] font-bold tabular-nums"
+                >
+                  {unread > 9 ? "9+" : unread}
+                </span>
+              )}
+            </Link>
+          </div>
         </header>
         <StudentNav unread={unread} />
       </div>

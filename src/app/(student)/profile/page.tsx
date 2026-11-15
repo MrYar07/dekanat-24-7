@@ -4,13 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getMyProfile } from "@/lib/data/student";
+import { cookies } from "next/headers";
 import { logout } from "@/app/login/actions";
+import { InstallHint } from "@/components/install-hint";
+import { ThemePicker } from "@/components/theme";
+import { isTheme, THEME_COOKIE } from "@/lib/theme";
 import { logoutEverywhere } from "@/app/login/logout-all";
 
 export const metadata: Metadata = { title: "Профиль" };
 
 export default async function ProfilePage() {
-  const p = await getMyProfile();
+  const [p, store] = await Promise.all([getMyProfile(), cookies()]);
+  const theme = store.get(THEME_COOKIE)?.value;
   const fullName = [p.lastName, p.firstName, p.middleName].filter(Boolean).join(" ");
 
   const rows: [string, string][] = [
@@ -51,7 +56,16 @@ export default async function ProfilePage() {
           </dl>
         </div>
       </Card>
-      <form action={logout} className="mt-4">
+      <section aria-labelledby="look-title" className="mt-6">
+        <SectionTitle>
+          <span id="look-title">Оформление</span>
+        </SectionTitle>
+        <ThemePicker initial={isTheme(theme) ? theme : "system"} />
+        <div className="mt-4">
+          <InstallHint />
+        </div>
+      </section>
+      <form action={logout} className="mt-6">
         <Button type="submit" variant="danger" className="w-full">
           <LogOut className="size-5" aria-hidden="true" />
           Выйти

@@ -26,7 +26,7 @@ export function StatusBadge({ tone, children }: { tone: StatusTone; children: Re
 /** Печать на готовом документе. Только для итогового «готово / выдано / подтверждено». */
 export function Stamp({ children = "готово" }: { children?: React.ReactNode }) {
   return (
-    <span className="border-stamp text-stamp inline-flex -rotate-3 items-center gap-1 rounded-md border-2 px-2 py-0.5 text-[11px] font-extrabold tracking-[0.1em] whitespace-nowrap uppercase">
+    <span className="border-stamp text-stamp stamp-in inline-flex -rotate-3 items-center gap-1 rounded-md border-2 px-2 py-0.5 text-[11px] font-extrabold tracking-[0.1em] whitespace-nowrap uppercase">
       <CircleCheck className="size-3.5" aria-hidden="true" />
       {children}
     </span>

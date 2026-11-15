@@ -13,6 +13,7 @@ export type Role = (typeof users.$inferSelect)["role"];
 
 export type CurrentUser = {
   id: string;
+  login: string;
   role: Role;
   lastName: string;
   firstName: string;
@@ -26,6 +27,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   const [user] = await db
     .select({
       id: users.id,
+      login: users.login,
       role: users.role,
       lastName: users.lastName,
       firstName: users.firstName,

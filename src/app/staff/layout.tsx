@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { logout } from "@/app/login/actions";
 import { Logo } from "@/components/logo";
 import { DeanNav } from "@/components/staff-nav";
+import { ThemeToggle } from "@/components/theme";
 import { Button } from "@/components/ui/button";
 import { requireRole } from "@/lib/auth/dal";
 
@@ -24,6 +25,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
           <p className="text-muted hidden min-w-0 truncate text-right text-sm sm:block">
             {user.lastName} {user.firstName[0]}.{user.middleName ? ` ${user.middleName[0]}.` : ""} · {role}
           </p>
+          <ThemeToggle />
           <form action={logout}>
             <Button type="submit" variant="ghost" className="px-3 text-sm">
               <LogOut className="size-4" aria-hidden="true" />

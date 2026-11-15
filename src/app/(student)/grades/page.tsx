@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Calculator, Check, Circle, ExternalLink, FileText, Paperclip, Plus, TrendingUp } from "lucide-react";
 import { AchievementStatusBadge } from "@/components/achievement-status";
+import { AnimatedNumber } from "@/components/animated-number";
 import { buttonClass } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
 import { EmptyState } from "@/components/ui/states";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
+import { getCurrentUser } from "@/lib/auth/dal";
 import { getGrades } from "@/lib/data/learning";
 import { MARK_LABEL, markFor, neededOnExam, neededOnRemainingCheckpoints, type GradingSettings } from "@/lib/grading";
 
@@ -131,7 +133,7 @@ function CourseCard({ c, s, week }: { c: Course; s: GradingSettings; week: numbe
 }
 
 export default async function GradesPage({ searchParams }: { searchParams: Promise<{ sent?: string }> }) {
-  const [g, { sent }] = await Promise.all([getGrades(), searchParams]);
+  const [g, { sent }, me] = await Promise.all([getGrades(), searchParams, getCurrentUser()]);
   const s = g.settings;
 
   if (!g.term || g.courses.length === 0) {
@@ -160,7 +162,9 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
             <p className="text-muted text-xs font-semibold tracking-[0.08em] uppercase">
               Рейтинг триместра{r.forecast && " · прогноз"}
             </p>
-            <p className="mt-1 font-serif text-[44px] leading-none font-bold tabular-nums">{one.format(r.rating)}</p>
+            <p className="mt-1 font-serif text-[44px] leading-none font-bold tabular-nums">
+              <AnimatedNumber key={me?.id} value={r.rating} storageKey={`rating:${me?.id}`} />
+            </p>
             <Ledger className="mt-4">
               <LedgerRow label="Средний балл по дисциплинам" value={one.format(r.base)} />
               <LedgerRow

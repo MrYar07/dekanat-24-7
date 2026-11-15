@@ -6,7 +6,7 @@ test.describe("из чего мой рейтинг", () => {
     await login(page, "student1");
     await page.goto("/grades");
     // Рейтинг на «Успеваемости» — крупное число в карточке рейтинга.
-    const rating = (await page.getByLabel("Рейтинг", { exact: true }).locator("p.font-serif").first().textContent())!.trim();
+    const rating = (await page.getByLabel("Рейтинг", { exact: true }).locator("[data-value]").first().getAttribute("data-value"))!;
     expect(rating).toMatch(/^\d{2,3},\d$/);
 
     await page.getByRole("link", { name: "Из чего он складывается" }).click();

@@ -4,7 +4,8 @@ import { login, query } from "./helpers";
 const PDF = Buffer.from("%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n", "latin1");
 const ratingOf = async (page: Page) => {
   await page.goto("/grades");
-  const text = (await page.getByLabel("Рейтинг", { exact: true }).locator("p.font-serif").first().textContent())!.trim();
+  // Число рейтинга доезжает анимацией: итог лежит в data-value.
+  const text = (await page.getByLabel("Рейтинг", { exact: true }).locator("[data-value]").first().getAttribute("data-value"))!;
   return Number(text.replace(",", "."));
 };
 const clean = (title: string) =>
