@@ -79,6 +79,7 @@ describe("PDF", () => {
           { academicYear: "2026/27", rating: 89.4, complete: false },
           { academicYear: "2025/26", rating: 89.6, complete: true },
         ],
+        place: { place: 1, total: 9, course: 2 },
       },
       { ...info, number: "Р-000013" },
     );

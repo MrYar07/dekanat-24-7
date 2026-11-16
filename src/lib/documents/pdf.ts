@@ -202,6 +202,7 @@ function ratingBody(w: Writer, s: RatingSnapshot) {
   w.row("Средний балл", one.format(s.base));
   w.row("Бонус активности", `+${one.format(s.bonus)}`);
   w.row("Рейтинг триместра", one.format(s.rating));
+  if (s.place) w.row(`Место на ${s.place.course}-м курсе`, `${s.place.place} из ${s.place.total}`);
   for (const y of s.years ?? []) {
     w.row(`Годовой рейтинг ${y.academicYear}${y.complete ? "" : ", прогноз"}`, one.format(y.rating));
   }

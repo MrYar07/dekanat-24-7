@@ -38,6 +38,7 @@ import {
   type GradingSettings,
 } from "@/lib/grading";
 import { summarizeYears, type TermSummary } from "@/lib/grading/archive";
+import { standingOf } from "@/lib/grading/standing";
 import { lessonsOn, upcomingChanges, upcomingDay, type Change, type Slot } from "@/lib/schedule";
 import { addDays, mskNow, termWeek } from "@/lib/time";
 
@@ -425,7 +426,7 @@ export async function getGrades(at: Date = new Date()) {
 /** Данные для выписки рейтинга: только дисциплины, по которым уже есть балл. */
 export async function getMyRatingSnapshot() {
   const ctx = await loadStudent();
-  const [perf, archive] = await Promise.all([loadPerformance(ctx), loadArchive(ctx)]);
+  const [perf, archive, standing] = await Promise.all([loadPerformance(ctx), loadArchive(ctx), loadStanding(ctx)]);
   if (!ctx.term || !perf.rating) return null;
   return {
     term: `${ctx.term.name} ${ctx.term.academicYear} учебного года`.trim(),
@@ -445,6 +446,7 @@ export async function getMyRatingSnapshot() {
     years: archive.years
       .filter((y) => y.rating !== null)
       .map((y) => ({ academicYear: y.academicYear, rating: Math.round(y.rating! * 10) / 10, complete: y.complete })),
+    place: standing?.standing ? { place: standing.standing.place, total: standing.standing.total, course: standing.course } : undefined,
   };
 }
 
@@ -571,4 +573,86 @@ export async function getMyArchivedTerm(termId: string) {
     retakes: perf.courses.reduce((n, c) => n + c.retakes, 0),
     achievements: achievementRows,
   };
+}
+
+// ——— Место на курсе ———
+
+/**
+ * Место студента среди всех студентов его курса по рейтингу текущего триместра.
+ * Чужие рейтинги считаются здесь и наружу не выходят: возвращаются только место, число студентов
+ * и сколько человек в каждом диапазоне. Ни id, ни ФИО одногруппников в ответе нет.
+ */
+async function loadStanding(ctx: StudentContext) {
+  const { user, me, term } = ctx;
+  if (!term) return null;
+  const [[group], perf] = await Promise.all([
+    db.select({ course: groups.course }).from(groups).where(eq(groups.id, me.groupId)),
+    loadPerformance(ctx),
+  ]);
+  if (!group || !perf.rating) return null;
+
+  const cohort = await db
+    .select({ userId: studentProfiles.userId, groupId: studentProfiles.groupId })
+    .from(studentProfiles)
+    .innerJoin(groups, eq(groups.id, studentProfiles.groupId))
+    .where(eq(groups.course, group.course));
+  const others = cohort.filter((c) => c.userId !== user.id);
+  const groupIds = [...new Set(others.map((c) => c.groupId))];
+  const courseRows = groupIds.length
+    ? await db
+        .select({ id: courses.id, groupId: courses.groupId, assessment: courses.assessment })
+        .from(courses)
+        .where(and(inArray(courses.groupId, groupIds), eq(courses.termId, term.id)))
+    : [];
+  const ids = others.map((c) => c.userId);
+  const courseIds = courseRows.map((c) => c.id);
+  if (ids.length === 0 || courseIds.length === 0) return { course: group.course, standing: standingOf(perf.rating.rating, []) };
+
+  const [scoreRows, attRows, resultRows, pointRows] = await Promise.all([
+    db
+      .select({ studentId: checkpointScores.studentId, courseId: checkpoints.courseId, score: checkpointScores.score })
+      .from(checkpointScores)
+      .innerJoin(checkpoints, eq(checkpoints.id, checkpointScores.checkpointId))
+      .where(and(inArray(checkpointScores.studentId, ids), inArray(checkpoints.courseId, courseIds))),
+    db
+      .select({ studentId: attendance.studentId, courseId: timetableSlots.courseId, status: attendance.status, n: count() })
+      .from(attendance)
+      .innerJoin(timetableSlots, eq(timetableSlots.id, attendance.slotId))
+      .where(and(inArray(attendance.studentId, ids), inArray(timetableSlots.courseId, courseIds)))
+      .groupBy(attendance.studentId, timetableSlots.courseId, attendance.status),
+    db
+      .select()
+      .from(courseResults)
+      .where(and(inArray(courseResults.studentId, ids), inArray(courseResults.courseId, courseIds))),
+    db
+      .select({ studentId: achievements.studentId, points: sum(achievements.points).mapWith(Number) })
+      .from(achievements)
+      .where(and(inArray(achievements.studentId, ids), eq(achievements.termId, term.id), eq(achievements.status, "approved")))
+      .groupBy(achievements.studentId),
+  ]);
+
+  const ratings = others.flatMap(({ userId, groupId }) => {
+    const inputs: DisciplineInput[] = courseRows
+      .filter((c) => c.groupId === groupId)
+      .map((c) => {
+        const att = (status: "present" | "absent") =>
+          attRows.find((a) => a.studentId === userId && a.courseId === c.id && a.status === status)?.n ?? 0;
+        const result = resultRows.find((r) => r.studentId === userId && r.courseId === c.id);
+        return {
+          checkpoints: scoreRows.filter((r) => r.studentId === userId && r.courseId === c.id).map((r) => r.score),
+          bonus: result?.bonus ?? 0,
+          session: { kind: c.assessment, raw: result?.sessionRaw ?? null, retakes: result?.retakes ?? 0 },
+          attendancePct: attendancePercent(att("present"), att("absent")),
+          activity: result?.activity ?? null,
+        };
+      });
+    const points = pointRows.find((p) => p.studentId === userId)?.points ?? 0;
+    const r = ratingForecast(inputs, points, perf.settings);
+    return r ? [r.rating] : [];
+  });
+  return { course: group.course, standing: standingOf(perf.rating.rating, ratings) };
+}
+
+export async function getMyStanding() {
+  return loadStanding(await loadStudent());
 }

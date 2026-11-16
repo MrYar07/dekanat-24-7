@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Archive, Calculator, Check, Circle, ExternalLink, FileText, Paperclip, Plus, Target, TrendingUp } from "lucide-react";
 import { AchievementStatusBadge } from "@/components/achievement-status";
 import { AnimatedNumber } from "@/components/animated-number";
+import { StandingCard } from "@/components/standing-card";
 import { buttonClass } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { Card } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import { EmptyState } from "@/components/ui/states";
 import { StatusBadge } from "@/components/ui/status";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getCurrentUser } from "@/lib/auth/dal";
-import { getGrades } from "@/lib/data/learning";
+import { getGrades, getMyStanding } from "@/lib/data/learning";
 import { MARK_LABEL, markFor, neededOnExam, neededOnRemainingCheckpoints, type GradingSettings } from "@/lib/grading";
 import { healthOf } from "@/lib/grading/health";
 
@@ -149,7 +150,7 @@ function CourseCard({ c, s, week }: { c: Course; s: GradingSettings; week: numbe
 }
 
 export default async function GradesPage({ searchParams }: { searchParams: Promise<{ sent?: string }> }) {
-  const [g, { sent }, me] = await Promise.all([getGrades(), searchParams, getCurrentUser()]);
+  const [g, { sent }, me, standing] = await Promise.all([getGrades(), searchParams, getCurrentUser(), getMyStanding()]);
   const s = g.settings;
 
   if (!g.term || g.courses.length === 0) {
@@ -254,6 +255,15 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
               </p>
             )}
           </div>
+        </section>
+      )}
+
+      {standing?.standing && (
+        <section aria-labelledby="standing-title" className="mb-8">
+          <SectionTitle>
+            <span id="standing-title">Место на курсе</span>
+          </SectionTitle>
+          <StandingCard s={standing.standing} course={standing.course} />
         </section>
       )}
 

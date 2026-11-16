@@ -292,6 +292,10 @@ async function main() {
       const random = rng(seed);
       // Отдельный генератор: баллы одногруппников не должны сдвигать посещаемость и рейтинг главного студента.
       const mateRandom = rng(seed + 1);
+      // У каждого одногруппника свой уровень: иначе средние по шести дисциплинам сливаются в одну точку,
+      // и «место на курсе» показывает толпу в одном диапазоне. Отдельный генератор — баллы выше не сдвигаются.
+      const abilityRandom = rng(seed + 2);
+      const ability = mates.map(() => Math.round((abilityRandom() - 0.5) * 24));
       const seeded: Seeded[] = [];
       const forecastInputs = [];
 
@@ -337,7 +341,7 @@ async function main() {
 
         // Одногруппникам — первый срез всем, второй тем, у кого он есть у главного студента и не у каждого пятого.
         const mateScores = mates.flatMap((mateId, k) => {
-          const score = (base: number) => Math.min(100, Math.max(45, Math.round(base + (mateRandom() - 0.5) * 30)));
+          const score = (base: number) => Math.min(100, Math.max(45, Math.round(base + ability[k] + (mateRandom() - 0.5) * 30)));
           const rows = [{ checkpointId: cps[0].id, studentId: mateId, score: score(78), gradedAt: mskInstant(addDays(termStart, 24), "18:00") }];
           if (cp2 !== null && k % 5 !== 4) rows.push({ checkpointId: cps[1].id, studentId: mateId, score: score(80), gradedAt: mskInstant(addDays(today, -1 - (i % 5)), `${16 + (i % 3)}:30`) });
           return rows;

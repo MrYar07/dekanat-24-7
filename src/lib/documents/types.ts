@@ -27,6 +27,8 @@ export type RatingSnapshot = {
   forecast: boolean;
   /** Годовые рейтинги, свежий год первым. В выписках, выданных до появления архива, поля нет. */
   years?: { academicYear: string; rating: number; complete: boolean }[];
+  /** Место на курсе по рейтингу триместра. В маленьком курсе его нет. */
+  place?: { place: number; total: number; course: number };
 };
 
 export type DocumentSnapshot = StudySnapshot | RatingSnapshot;
