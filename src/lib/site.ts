@@ -20,3 +20,7 @@ export async function siteOrigin(): Promise<string> {
 export async function verifyUrl(code: string): Promise<string> {
   return `${await siteOrigin()}/verify/${code}`;
 }
+
+export async function cardVerifyUrl(token: string): Promise<string> {
+  return `${await siteOrigin()}/verify/student/${token}`;
+}

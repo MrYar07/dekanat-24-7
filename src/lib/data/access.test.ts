@@ -8,7 +8,8 @@ import { describe, expect, it } from "vitest";
 const dir = __dirname;
 // Общие для всех данные, не привязанные к пользователю.
 // verifyDocument — публичная проверка справки по QR-коду, без входа и с минимумом данных.
-const PUBLIC = new Set(["verifyDocument"]);
+// verifyStudentCard — проверка электронного студенческого по одноразовому QR, тоже без входа.
+const PUBLIC = new Set(["verifyDocument", "verifyStudentCard"]);
 
 const files = readdirSync(dir).filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"));
 const fns = files.flatMap((file) => {

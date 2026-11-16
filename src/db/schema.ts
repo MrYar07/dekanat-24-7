@@ -412,3 +412,21 @@ export const notifications = pgTable(
   },
   (t) => [index("notifications_user_idx").on(t.userId, t.createdAt)],
 );
+
+
+/**
+ * Одноразовые коды электронного студенческого. QR на экране меняется каждую минуту и живёт две:
+ * снимок экрана, пересланный другу, быстро устаревает. Код случайный, по нему нельзя узнать id студента.
+ */
+export const studentCardTokens = pgTable(
+  "student_card_tokens",
+  {
+    token: text("token").primaryKey(),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("student_card_tokens_student_idx").on(t.studentId)],
+);

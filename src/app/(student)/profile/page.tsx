@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { LogOut } from "lucide-react";
+import Link from "next/link";
+import { ChevronRight, IdCard, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
@@ -56,6 +57,17 @@ export default async function ProfilePage() {
           </dl>
         </div>
       </Card>
+      <Link
+        href="/profile/card"
+        className="border-border bg-surface hover:bg-surface-2 mt-4 flex items-center gap-3 rounded-xl border p-4 transition-colors"
+      >
+        <IdCard className="text-brand size-6 shrink-0" aria-hidden="true" />
+        <span className="min-w-0 flex-1">
+          <span className="block font-semibold">Электронный студенческий</span>
+          <span className="text-muted block text-sm">QR для входа, библиотеки и скидок. Меняется каждую минуту.</span>
+        </span>
+        <ChevronRight className="text-muted size-5 shrink-0" aria-hidden="true" />
+      </Link>
       <section aria-labelledby="look-title" className="mt-6">
         <SectionTitle>
           <span id="look-title">Оформление</span>

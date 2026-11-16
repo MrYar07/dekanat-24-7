@@ -34,7 +34,7 @@ npm run dev
 | drizzle-kit, node-postgres (`pg`), `@node-rs/argon2`, Zod | MIT |
 | Lucide (иконки) | ISC |
 | Шрифты Golos Text и PT Serif (через Fontsource) | SIL Open Font License 1.1 |
-| `pdf-lib`, `@pdf-lib/fontkit` (PDF справок), `qrcode` (QR-код проверки) | MIT |
+| `pdf-lib`, `@pdf-lib/fontkit` (PDF справок), `qrcode` (QR-код проверки справки и студенческого) | MIT |
 | embedded-postgres (только для разработки), Vitest | MIT |
 | Playwright (только для тестов) | Apache-2.0 |
 | PostgreSQL (образ в проде) | PostgreSQL License |
