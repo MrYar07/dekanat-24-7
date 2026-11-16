@@ -76,7 +76,8 @@ export async function getMyCourses() {
   }));
 }
 
-/** Курс, только если его ведёт этот преподаватель. null — чужой или несуществующий. */
+/** Курс текущего триместра, только если его ведёт этот преподаватель. null — чужой, несуществующий или из архива:
+ * баллы закрытого триместра уже итоговые, менять их нельзя. */
 async function ownCourse(courseId: string, teacherId: string) {
   if (!UUID.test(courseId)) return null;
   const [c] = await db
@@ -90,6 +91,7 @@ async function ownCourse(courseId: string, teacherId: string) {
     .from(courses)
     .innerJoin(disciplines, eq(disciplines.id, courses.disciplineId))
     .innerJoin(groups, eq(groups.id, courses.groupId))
+    .innerJoin(terms, and(eq(terms.id, courses.termId), eq(terms.isCurrent, true)))
     .where(and(eq(courses.id, courseId), eq(courses.teacherId, teacherId)));
   return c ?? null;
 }

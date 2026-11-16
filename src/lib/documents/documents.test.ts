@@ -61,7 +61,7 @@ describe("PDF", () => {
     expect(pdf.getTitle()).toBe("СПРАВКА ОБ ОБУЧЕНИИ № С-000012");
   });
 
-  it("выписка рейтинга — одностраничный PDF", async () => {
+  it("выписка рейтинга с годовыми рейтингами — одностраничный PDF", async () => {
     const bytes = await renderDocument(
       {
         kind: "rating",
@@ -75,6 +75,10 @@ describe("PDF", () => {
         base: 89.4,
         bonus: 1.6,
         forecast: true,
+        years: [
+          { academicYear: "2026/27", rating: 89.4, complete: false },
+          { academicYear: "2025/26", rating: 89.6, complete: true },
+        ],
       },
       { ...info, number: "Р-000013" },
     );

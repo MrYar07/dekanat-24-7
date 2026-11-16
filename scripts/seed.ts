@@ -10,7 +10,8 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as s from "../src/db/schema";
 import { hashPassword } from "../src/lib/auth/password";
-import { DEFAULT_SETTINGS, attendancePercent, ratingForecast } from "../src/lib/grading";
+import { DEFAULT_SETTINGS, attendancePercent, ratingForecast, type DisciplineInput } from "../src/lib/grading";
+import { academicYearOf, summarizeYears, type TermSummary } from "../src/lib/grading/archive";
 import { PAIRS } from "../src/lib/schedule/pairs";
 import { addDays, formatDay, mondayOf, mskInstant, mskNow, weekdayOf } from "../src/lib/time";
 
@@ -62,6 +63,34 @@ const MP_COURSES: CourseSpec[] = [
   { discipline: "Английский язык", teacher: "Ким", assessment: "credit", slots: [[2, "13:00", "ауд. 507", "seminar"], [4, "13:00", "ауд. 507", "seminar"]], scores: [76, 70] },
   { discipline: "Региональные конфликты", teacher: "Ромашова", assessment: "credit", slots: [[3, "14:50", "ауд. 309", "seminar"]], scores: [80, 77] },
   { discipline: "Дипломатический протокол", teacher: "Голубева", assessment: "credit", slots: [[5, "13:00", "ауд. 412", "seminar"]], scores: [60, 71] },
+];
+
+// Архив: прошлые триместры. У ГЭ-24-1 позади первый курс, у МП-23-2 — два.
+// Дисциплина: [название, преподаватель, форма контроля]. level — к какому баллу дисциплины тянутся оценки студента.
+type PastCourse = [discipline: string, teacher: string, assessment: "exam" | "credit"];
+type PastTerm = { yearsBack: number; number: 1 | 2 | 3; level: number; courses: PastCourse[]; retake?: string; achievement?: { kind: "conference" | "olympiad" | "media" | "organize" | "help" | "sport"; title: string; points: number } };
+
+// Алина: сильный первый курс, но годовой рейтинг 2025/26 немного не дотянул до гранта 25% — это видно в архиве.
+const GE_PAST: PastTerm[] = [
+  { yearsBack: 1, number: 1, level: 87.5, courses: [["Микроэкономика", "Орлов", "exam"], ["Математический анализ", "Белова", "exam"], ["Английский язык", "Ким", "credit"], ["История экономических учений", "Лазарева", "credit"], ["Введение в специальность", "Сафонова", "credit"]],
+    achievement: { kind: "help", title: "Помощь в проведении Дня первокурсника", points: 30 } },
+  { yearsBack: 1, number: 2, level: 89, courses: [["Линейная алгебра", "Белова", "exam"], ["Статистика", "Белова", "exam"], ["Английский язык", "Ким", "credit"], ["Философия", "Демидов", "credit"], ["Экономическая география", "Лазарева", "credit"]],
+    achievement: { kind: "olympiad", title: "Призёр олимпиады по экономике среди первокурсников", points: 60 } },
+  { yearsBack: 1, number: 3, level: 88.5, courses: [["Теория вероятностей", "Белова", "exam"], ["Экономика фирмы", "Сафонова", "exam"], ["Английский язык", "Ким", "credit"], ["Основы права", "Демидов", "credit"], ["Информатика", "Белова", "credit"]],
+    achievement: { kind: "conference", title: "Доклад на весенней студенческой конференции", points: 40 } },
+];
+
+// Матвей: ровный «середнячок», во втором курсе — одна пересдача, поэтому без повышенной стипендии в том триместре.
+const MP_PAST: PastTerm[] = [
+  { yearsBack: 2, number: 1, level: 74, courses: [["Введение в теорию международных отношений", "Ромашова", "exam"], ["Всеобщая история", "Демидов", "exam"], ["Английский язык", "Ким", "credit"], ["Политология", "Ромашова", "credit"], ["Русский язык и культура речи", "Голубева", "credit"]] },
+  { yearsBack: 2, number: 2, level: 76, courses: [["Сравнительная политология", "Ромашова", "exam"], ["История России", "Демидов", "exam"], ["Английский язык", "Ким", "credit"], ["Философия", "Демидов", "credit"], ["Французский язык", "Голубева", "credit"]],
+    achievement: { kind: "media", title: "Репортажи для студенческого журнала", points: 20 } },
+  { yearsBack: 2, number: 3, level: 75, courses: [["Мировая политика", "Ромашова", "exam"], ["Конституционное право", "Белова", "exam"], ["Английский язык", "Ким", "credit"], ["Французский язык", "Голубева", "credit"], ["Политическая география", "Демидов", "credit"]] },
+  { yearsBack: 1, number: 1, level: 73, courses: [["История международных отношений", "Демидов", "exam"], ["Международные организации", "Белова", "exam"], ["Английский язык", "Ким", "credit"], ["Французский язык", "Голубева", "credit"], ["Экономика", "Сафонова", "credit"]],
+    achievement: { kind: "sport", title: "Турнир по волейболу за сборную университета", points: 40 } },
+  { yearsBack: 1, number: 2, level: 71, courses: [["Внешняя политика России", "Ромашова", "exam"], ["Дипломатическая служба", "Голубева", "exam"], ["Английский язык", "Ким", "credit"], ["Французский язык", "Голубева", "credit"], ["Методы политического анализа", "Ромашова", "credit"]],
+    retake: "Дипломатическая служба" },
+  { yearsBack: 1, number: 3, level: 74, courses: [["Международная безопасность", "Ромашова", "exam"], ["Европейская интеграция", "Белова", "exam"], ["Английский язык", "Ким", "credit"], ["Французский язык", "Голубева", "credit"], ["Политическая риторика", "Голубева", "credit"]] },
 ];
 
 // Логин teacher — у преподавателя английского: он ведёт группы обоих тестовых студентов.
@@ -232,13 +261,27 @@ async function main() {
 
     // Триместр и дисциплины
 
+    const currentYear = academicYearOf(termStart);
     const [term] = await tx
       .insert(s.terms)
-      .values({ name: "1-й триместр", startsOn: termStart, weeks: 12, isCurrent: true })
+      .values({ name: "1-й триместр", academicYear: currentYear, number: 1, startsOn: termStart, weeks: 12, isCurrent: true })
       .returning();
 
+    // Прошлые триместры общие для обеих групп, как в настоящем расписании вуза: 12 недель учёбы и сессия.
+    const startYear = Number(currentYear.slice(0, 4));
+    const pastTermIds = new Map<string, { id: string; startsOn: string; academicYear: string }>();
+    for (const yearsBack of [2, 1]) {
+      for (const number of [1, 2, 3] as const) {
+        const academicYear = `${startYear - yearsBack}/${String((startYear - yearsBack + 1) % 100).padStart(2, "0")}`;
+        const startsOn = addDays(termStart, -364 * yearsBack + (number - 1) * 15 * 7);
+        const [t] = await tx.insert(s.terms).values({ name: `${number}-й триместр`, academicYear, number, startsOn, weeks: 12 }).returning();
+        pastTermIds.set(`${yearsBack}-${number}`, { id: t.id, startsOn, academicYear });
+      }
+    }
+
     const disciplineIds = new Map<string, string>();
-    for (const name of new Set([...GE_COURSES, ...MP_COURSES].map((c) => c.discipline))) {
+    const pastNames = [...GE_PAST, ...MP_PAST].flatMap((t) => t.courses.map(([name]) => name));
+    for (const name of new Set([...GE_COURSES.map((c) => c.discipline), ...MP_COURSES.map((c) => c.discipline), ...pastNames])) {
       const [d] = await tx.insert(s.disciplines).values({ name }).returning();
       disciplineIds.set(name, d.id);
     }
@@ -333,6 +376,82 @@ async function main() {
     const ge = await seedGroup(ge2.id, student1.id, GE_COURSES, 0.95, 417, geMates);
     const mp = await seedGroup(mp3.id, student2.id, MP_COURSES, 0.8, 1182, mpMates);
 
+    // Архив: закрытые триместры с выставленными срезами, сессией и активностью. Только у главных студентов:
+    // журналы преподавателей показывают текущий триместр, одногруппникам прошлое не нужно.
+    const pastSummaries: Record<string, TermSummary[]> = { student1: [], student2: [] };
+    async function seedPast(who: "student1" | "student2", groupId: string, studentId: string, plan: PastTerm[], presentRate: number, seed: number) {
+      const random = rng(seed);
+      const noise = (spread: number) => (random() - 0.5) * 2 * spread;
+      const score = (x: number) => Math.min(100, Math.max(50, Math.round(x)));
+      for (const p of plan) {
+        const t = pastTermIds.get(`${p.yearsBack}-${p.number}`)!;
+        const inputs: DisciplineInput[] = [];
+        let retakes = 0;
+        for (const [discipline, teacher, assessment] of p.courses) {
+          const [course] = await tx
+            .insert(s.courses)
+            .values({ disciplineId: disciplineIds.get(discipline)!, groupId, termId: t.id, teacherId: teacherIds[teacher], assessment, plannedCheckpoints: 3 })
+            .returning();
+          const slots = await tx
+            .insert(s.timetableSlots)
+            .values([
+              { courseId: course.id, weekday: 1 + Math.floor(random() * 5), startsAt: "09:30", endsAt: PAIRS["09:30"], room: "ауд. 101", kind: "lecture" as const },
+              { courseId: course.id, weekday: 1 + Math.floor(random() * 5), startsAt: "11:10", endsAt: PAIRS["11:10"], room: "ауд. 225", kind: "seminar" as const },
+            ])
+            .returning();
+          const cps = await tx
+            .insert(s.checkpoints)
+            .values([4, 8, 11].map((week, n) => ({ courseId: course.id, number: n + 1, week })))
+            .returning();
+          const marks = cps.map(() => score(p.level + noise(6)));
+          await tx.insert(s.checkpointScores).values(
+            cps.map((cp, n) => ({ checkpointId: cp.id, studentId, score: marks[n], gradedAt: mskInstant(addDays(t.startsOn, cp.week * 7 - 3), "17:00") })),
+          );
+
+          let present = 0;
+          let absent = 0;
+          const att = [];
+          for (const slot of slots) {
+            for (let w = 0; w < 12; w++) {
+              const r = random();
+              const status = r < presentRate ? "present" : r < presentRate + 0.04 ? "excused" : "absent";
+              if (status === "present") present++;
+              if (status === "absent") absent++;
+              att.push({ slotId: slot.id, date: addDays(nextWeekday(slot.weekday, t.startsOn), w * 7), studentId, status } as const);
+            }
+          }
+          await tx.insert(s.attendance).values(att);
+
+          const isRetake = p.retake === discipline;
+          const bonus = p.level >= 85 ? Math.floor(random() * 3) : 0;
+          const activity = score(p.level + noise(8));
+          // Пересдача: первая попытка не сдана, вторая — 74, в зачёт идёт 64.
+          const sessionRaw = isRetake ? 74 : score(p.level + noise(8));
+          const result = { courseId: course.id, studentId, bonus, activity, sessionRaw, retakes: isRetake ? 1 : 0 };
+          await tx.insert(s.courseResults).values(result);
+          retakes += result.retakes;
+          inputs.push({
+            checkpoints: marks,
+            bonus,
+            session: { kind: assessment, raw: sessionRaw, retakes: result.retakes },
+            attendancePct: attendancePercent(present, absent),
+            activity,
+          });
+        }
+        pastSummaries[who].push({
+          id: t.id,
+          name: `${p.number}-й триместр`,
+          academicYear: t.academicYear,
+          number: p.number,
+          current: false,
+          retakes,
+          rating: ratingForecast(inputs, p.achievement?.points ?? 0),
+        });
+      }
+    }
+    await seedPast("student1", ge2.id, student1.id, GE_PAST, 0.96, 2417);
+    await seedPast("student2", mp3.id, student2.id, MP_PAST, 0.82, 21182);
+
     // Изменения в расписании на ближайшие дни.
     const tomorrow = addDays(today, 1);
     const slotOf = (g: typeof ge, discipline: string, weekday: number) =>
@@ -378,6 +497,16 @@ async function main() {
       .returning();
     const kindId = (key: (typeof ACHIEVEMENT_KINDS)[number]["key"]) =>
       kinds[ACHIEVEMENT_KINDS.findIndex((k) => k.key === key)].id;
+
+    // Засчитанные достижения прошлых триместров: их бонус уже в рейтингах архива.
+    const pastAchievements = (studentId: string, plan: PastTerm[]) =>
+      plan.flatMap((p) => {
+        if (!p.achievement) return [];
+        const t = pastTermIds.get(`${p.yearsBack}-${p.number}`)!;
+        const at = mskInstant(addDays(t.startsOn, 50), "15:00");
+        return [{ studentId, termId: t.id, kindId: kindId(p.achievement.kind), title: p.achievement.title, status: "approved" as const, points: p.achievement.points, createdAt: at, decidedAt: new Date(at.getTime() + 2 * 86_400_000) }];
+      });
+    await tx.insert(s.achievements).values([...pastAchievements(student1.id, GE_PAST), ...pastAchievements(student2.id, MP_PAST)]);
 
     await tx.insert(s.achievements).values([
       { studentId: student1.id, termId: term.id, kindId: kindId("conference"), title: "Доклад на студенческой конференции «Экономика завтрашнего дня»", proofUrl: "https://example.org/conference-2026/program", status: "approved", points: 40, createdAt: ago(24 * 20), decidedAt: ago(24 * 18) },
@@ -541,6 +670,10 @@ async function main() {
     for (const [who, g, points] of [["student1", ge, 40], ["student2", mp, 30]] as const) {
       const r = ratingForecast(g.forecastInputs, points)!;
       studentRatings.push(`${who}: средний балл ${r.base.toFixed(1)}, рейтинг триместра ${r.rating.toFixed(1)} (прогноз)`);
+      for (const y of summarizeYears(pastSummaries[who])) {
+        const terms = y.terms.map((t) => `${t.number}: ${t.rating!.base.toFixed(1)}+${t.rating!.bonus.toFixed(1)}`).join(", ");
+        studentRatings.push(`  ${y.academicYear}: годовой ${y.rating!.toFixed(2)}${y.retakes ? `, пересдач ${y.retakes}` : ""} (${terms})`);
+      }
     }
   });
 

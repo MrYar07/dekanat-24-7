@@ -15,6 +15,7 @@ import {
   disciplines,
   documentTypes,
   gradingSettings,
+  groups,
   lessonChanges,
   notifications,
   requests,
@@ -36,6 +37,7 @@ import {
   type DisciplineInput,
   type GradingSettings,
 } from "@/lib/grading";
+import { summarizeYears, type TermSummary } from "@/lib/grading/archive";
 import { lessonsOn, upcomingChanges, upcomingDay, type Change, type Slot } from "@/lib/schedule";
 import { addDays, mskNow, termWeek } from "@/lib/time";
 
@@ -47,6 +49,33 @@ import { addDays, mskNow, termWeek } from "@/lib/time";
 
 const initials = (last: string, first: string, middle: string | null) =>
   `${last} ${first[0]}.${middle ? ` ${middle[0]}.` : ""}`;
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Дисциплины группы в выбранных триместрах, по алфавиту. */
+async function groupCourses(groupId: string, termIds: string[]) {
+  if (termIds.length === 0) return [];
+  const rows = await db
+    .select({
+      id: courses.id,
+      termId: courses.termId,
+      assessment: courses.assessment,
+      plannedCheckpoints: courses.plannedCheckpoints,
+      discipline: disciplines.name,
+      teacherLast: users.lastName,
+      teacherFirst: users.firstName,
+      teacherMiddle: users.middleName,
+    })
+    .from(courses)
+    .innerJoin(disciplines, eq(disciplines.id, courses.disciplineId))
+    .innerJoin(users, eq(users.id, courses.teacherId))
+    .where(and(eq(courses.groupId, groupId), inArray(courses.termId, termIds)))
+    .orderBy(asc(disciplines.name));
+  return rows.map(({ teacherLast, teacherFirst, teacherMiddle, ...c }) => ({
+    ...c,
+    teacher: initials(teacherLast, teacherFirst, teacherMiddle),
+  }));
+}
 
 /** Студент из сессии, его группа, текущий триместр и курсы группы. Один раз на запрос. */
 const loadStudent = cache(async () => {
@@ -60,32 +89,11 @@ const loadStudent = cache(async () => {
   ]);
   if (!me) throw new Error("Профиль студента не найден");
 
-  const courseRows = term
-    ? await db
-        .select({
-          id: courses.id,
-          assessment: courses.assessment,
-          plannedCheckpoints: courses.plannedCheckpoints,
-          discipline: disciplines.name,
-          teacherLast: users.lastName,
-          teacherFirst: users.firstName,
-          teacherMiddle: users.middleName,
-        })
-        .from(courses)
-        .innerJoin(disciplines, eq(disciplines.id, courses.disciplineId))
-        .innerJoin(users, eq(users.id, courses.teacherId))
-        .where(and(eq(courses.groupId, me.groupId), eq(courses.termId, term.id)))
-        .orderBy(asc(disciplines.name))
-    : [];
-
   return {
     user,
     me,
     term: term ?? null,
-    courses: courseRows.map(({ teacherLast, teacherFirst, teacherMiddle, ...c }) => ({
-      ...c,
-      teacher: initials(teacherLast, teacherFirst, teacherMiddle),
-    })),
+    courses: term ? await groupCourses(me.groupId, [term.id]) : [],
   };
 });
 
@@ -136,9 +144,18 @@ async function loadTimetable(ctx: StudentContext, from: string, to: string): Pro
   return { slots, changes };
 }
 
-/** Срезы, посещаемость и итоги по каждому курсу, плюс расчёт балла дисциплины и рейтинга. */
+type CourseRow = StudentContext["courses"][number];
+
+/** Срезы, посещаемость и итоги по каждому курсу текущего триместра, плюс расчёт балла дисциплины и рейтинга. */
 async function loadPerformance(ctx: StudentContext) {
-  const { user, term } = ctx;
+  return loadTermPerformance(ctx.user.id, ctx.term?.id ?? null, ctx.courses);
+}
+
+/** То же для любого триместра: текущего или из архива. Курсы — только группы студента из сессии. */
+async function loadTermPerformance(userId: string, termId: string | null, termCourses: CourseRow[]) {
+  const user = { id: userId };
+  const term = termId ? { id: termId } : null;
+  const ctx = { courses: termCourses };
   const courseIds = ctx.courses.map((c) => c.id);
   const settings = await loadSettings();
   if (!term || courseIds.length === 0) return { settings, courses: [], activityPoints: 0, rating: null };
@@ -408,10 +425,10 @@ export async function getGrades(at: Date = new Date()) {
 /** Данные для выписки рейтинга: только дисциплины, по которым уже есть балл. */
 export async function getMyRatingSnapshot() {
   const ctx = await loadStudent();
-  const perf = await loadPerformance(ctx);
+  const [perf, archive] = await Promise.all([loadPerformance(ctx), loadArchive(ctx)]);
   if (!ctx.term || !perf.rating) return null;
   return {
-    term: ctx.term.name,
+    term: `${ctx.term.name} ${ctx.term.academicYear} учебного года`.trim(),
     rows: perf.courses
       .filter((c) => c.result)
       .map((c) => ({
@@ -424,6 +441,10 @@ export async function getMyRatingSnapshot() {
     base: perf.rating.base,
     bonus: perf.rating.bonus,
     forecast: perf.rating.forecast,
+    // Годовые рейтинги за все годы: выписка «за триместр и год», как обещано в описании справки.
+    years: archive.years
+      .filter((y) => y.rating !== null)
+      .map((y) => ({ academicYear: y.academicYear, rating: Math.round(y.rating! * 10) / 10, complete: y.complete })),
   };
 }
 
@@ -471,4 +492,83 @@ export async function getCheckpointReminders(at: Date = new Date()) {
     ...w,
     items: w.items.sort((a, b) => a.discipline.localeCompare(b.discipline, "ru")),
   }));
+}
+
+// ——— Архив ———
+
+/** Триместры, в которых у группы студента были дисциплины. Будущих не бывает: сид создаёт только прошедшие. */
+async function myTerms(groupId: string) {
+  return db
+    .selectDistinct({ id: terms.id, name: terms.name, academicYear: terms.academicYear, number: terms.number, isCurrent: terms.isCurrent, startsOn: terms.startsOn })
+    .from(terms)
+    .innerJoin(courses, and(eq(courses.termId, terms.id), eq(courses.groupId, groupId)))
+    .orderBy(asc(terms.startsOn));
+}
+
+/** Все триместры студента с рейтингами и годовые рейтинги. Текущий триместр — прогнозом, как на «Успеваемости». */
+export async function getMyArchive() {
+  return loadArchive(await loadStudent());
+}
+
+async function loadArchive(ctx: StudentContext) {
+  const { user, me } = ctx;
+  const [termRows, [group]] = await Promise.all([
+    myTerms(me.groupId),
+    db.select({ course: groups.course }).from(groups).where(eq(groups.id, me.groupId)),
+  ]);
+  const pastIds = termRows.filter((t) => !t.isCurrent).map((t) => t.id);
+  const pastCourses = await groupCourses(me.groupId, pastIds);
+
+  const perfs = await Promise.all(
+    termRows.map((t) =>
+      t.isCurrent ? loadPerformance(ctx) : loadTermPerformance(user.id, t.id, pastCourses.filter((c) => c.termId === t.id)),
+    ),
+  );
+  const summaries: TermSummary[] = termRows.map((t, i) => ({
+    id: t.id,
+    name: t.name,
+    academicYear: t.academicYear,
+    number: t.number,
+    current: t.isCurrent,
+    rating: perfs[i].rating,
+    retakes: perfs[i].courses.reduce((n, c) => n + c.retakes, 0),
+  }));
+  const settings = perfs[0]?.settings ?? (await loadSettings());
+  // Курс в каждом году: нынешний минус сколько лет назад был этот год.
+  const years = summarizeYears(summaries).map((y, i) => ({ ...y, course: (group?.course ?? 1) - i }));
+  return { isPaid: me.isPaid, settings, years };
+}
+
+/**
+ * Закрытый триместр из архива. termId из адреса: триместр без дисциплин группы студента — null (страница 404),
+ * текущий — { current: true }, его показывает «Успеваемость». Оценки и достижения — только свои.
+ */
+export async function getMyArchivedTerm(termId: string) {
+  const ctx = await loadStudent();
+  const { user, me } = ctx;
+  if (!UUID.test(termId)) return null;
+  const [term] = await myTerms(me.groupId).then((rows) => rows.filter((t) => t.id === termId));
+  if (!term) return null;
+  if (term.isCurrent) return { current: true as const };
+
+  const termCourses = await groupCourses(me.groupId, [term.id]);
+  const [perf, achievementRows] = await Promise.all([
+    loadTermPerformance(user.id, term.id, termCourses),
+    db
+      .select({ id: achievements.id, title: achievements.title, kind: achievementKinds.name, points: achievements.points })
+      .from(achievements)
+      .innerJoin(achievementKinds, eq(achievementKinds.id, achievements.kindId))
+      .where(and(eq(achievements.studentId, user.id), eq(achievements.termId, term.id), eq(achievements.status, "approved")))
+      .orderBy(asc(achievements.createdAt)),
+  ]);
+  return {
+    current: false as const,
+    term: { name: term.name, academicYear: term.academicYear, number: term.number },
+    settings: perf.settings,
+    courses: perf.courses,
+    rating: perf.rating,
+    activityPoints: perf.activityPoints,
+    retakes: perf.courses.reduce((n, c) => n + c.retakes, 0),
+    achievements: achievementRows,
+  };
 }

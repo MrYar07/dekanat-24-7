@@ -25,6 +25,8 @@ export type RatingSnapshot = {
   base: number;
   bonus: number;
   forecast: boolean;
+  /** Годовые рейтинги, свежий год первым. В выписках, выданных до появления архива, поля нет. */
+  years?: { academicYear: string; rating: number; complete: boolean }[];
 };
 
 export type DocumentSnapshot = StudySnapshot | RatingSnapshot;

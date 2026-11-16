@@ -115,6 +115,10 @@ export const attendanceEnum = pgEnum("attendance_status", ["present", "absent", 
 export const terms = pgTable("terms", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
+  /** Учебный год, например «2025/26». Годовой рейтинг считается по триместрам одного года. */
+  academicYear: text("academic_year").notNull().default(""),
+  /** Номер триместра в учебном году: 1–3. */
+  number: smallint("number").notNull().default(1),
   /** Понедельник первой учебной недели. */
   startsOn: date("starts_on").notNull(),
   weeks: smallint("weeks").notNull().default(12),

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Calculator, Check, Circle, ExternalLink, FileText, Paperclip, Plus, Target, TrendingUp } from "lucide-react";
+import { Archive, Calculator, Check, Circle, ExternalLink, FileText, Paperclip, Plus, Target, TrendingUp } from "lucide-react";
 import { AchievementStatusBadge } from "@/components/achievement-status";
 import { AnimatedNumber } from "@/components/animated-number";
 import { buttonClass } from "@/components/ui/button";
@@ -215,6 +215,10 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
               >
                 <FileText className="size-4" aria-hidden="true" />
                 Выписка рейтинга в PDF
+              </Link>
+              <Link href="/grades/archive" className="text-brand inline-flex items-center gap-1.5 text-sm font-semibold hover:underline">
+                <Archive className="size-4" aria-hidden="true" />
+                Архив и годовой рейтинг
               </Link>
             </div>
           </Card>
