@@ -87,9 +87,8 @@ export default async function ArchivePage() {
           return (
             <section key={y.academicYear} aria-labelledby={`year-${y.academicYear}`}>
               <SectionTitle>
-                <span id={`year-${y.academicYear}`}>
-                  {y.academicYear} учебный год · {y.course}-й курс
-                </span>
+                {/* Одной строкой: из нескольких текстовых узлов диктор собирает «2 -й курс» с пробелом. */}
+                <span id={`year-${y.academicYear}`}>{`${y.academicYear} учебный год · ${y.course}-й курс`}</span>
               </SectionTitle>
               <Card>
                 <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_14rem] sm:items-start">
