@@ -11,6 +11,7 @@ import {
   Home,
   Inbox,
   Megaphone,
+  MessageCircleQuestion,
   NotebookPen,
   TrendingUp,
   UserRound,
@@ -30,6 +31,7 @@ const SETS: Record<"student" | "dean" | "teacher", Item[]> = {
     { href: "/requests", label: "Справки", icon: FileText },
     { href: "/profile", label: "Профиль", icon: UserRound },
     { href: "/notifications", label: "Уведомления", icon: Bell, gap: true },
+    { href: "/ask", label: "Спроси деканат", icon: MessageCircleQuestion },
   ],
   dean: [
     // «Заявки» — это очередь и карточки из неё: заявка на документ и достижение.

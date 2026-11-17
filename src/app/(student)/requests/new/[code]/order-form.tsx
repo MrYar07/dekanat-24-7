@@ -62,10 +62,13 @@ export function OrderForm({
   action,
   fields,
   instant,
+  initial,
 }: {
   action: (prev: OrderState, form: FormData) => Promise<OrderState>;
   fields: Field[];
   instant: boolean;
+  /** Заранее выбранные значения полей, например назначение справки. */
+  initial?: Record<string, string>;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
 
@@ -84,7 +87,7 @@ export function OrderForm({
     >
       {fields.map((f) => {
         const error = state.fields?.[f.name];
-        const value = state.values?.[f.name];
+        const value = state.values?.[f.name] ?? initial?.[f.name];
         if (f.kind === "select") return <SelectField key={f.name} field={f} error={error} value={value} />;
         if (f.kind === "number") {
           return (

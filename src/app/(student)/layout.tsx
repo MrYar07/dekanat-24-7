@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, MessageCircleQuestion } from "lucide-react";
 import { Cover, CoverBar } from "@/components/cover";
 import { LiveUpdates } from "@/components/live-updates";
 import { StudentNav } from "@/components/nav";
@@ -25,6 +25,10 @@ export default async function StudentLayout({ children }: { children: React.Reac
         lines={[`${me.group}, ${me.course} курс`, `зачётка ${me.recordBookNumber}`]}
       />
       <CoverBar home="/">
+        {/* На телефоне «Спроси деканат» — значок в шапке, на широком экране — пункт на обложке. */}
+        <Link href="/ask" aria-label="Спроси деканат" className="text-cover-muted hover:text-cover-ink rounded-full p-2">
+          <MessageCircleQuestion className="size-6" aria-hidden="true" />
+        </Link>
         <A11yToggle tone="cover" />
         <ThemeToggle tone="cover" />
         <Link

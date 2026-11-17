@@ -6,14 +6,33 @@ import { Callout } from "@/components/ui/callout";
 import { Card } from "@/components/ui/card";
 import { PageTitle } from "@/components/ui/typography";
 import { getDocumentCatalog } from "@/lib/data/requests";
-import { FIELDS, isDocumentCode } from "@/lib/documents/forms";
+import { FIELDS, isDocumentCode, type Field } from "@/lib/documents/forms";
 import { orderAction } from "../../actions";
 import { OrderForm } from "./order-form";
 
 export const metadata: Metadata = { title: "Заказ справки" };
 
-export default async function OrderPage({ params }: { params: Promise<{ code: string }> }) {
-  const { code } = await params;
+/**
+ * Значения из адреса («Спроси деканат» открывает форму с выбранным назначением).
+ * Берём только варианты из списка поля: произвольный текст из ссылки в форму не попадает.
+ */
+function initialValues(fields: Field[], query: Record<string, string | string[] | undefined>) {
+  const out: Record<string, string> = {};
+  for (const f of fields) {
+    const v = query[f.name];
+    if (f.kind === "select" && typeof v === "string" && f.options.includes(v)) out[f.name] = v;
+  }
+  return out;
+}
+
+export default async function OrderPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ code: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [{ code }, query] = await Promise.all([params, searchParams]);
   if (!isDocumentCode(code)) notFound();
   const type = (await getDocumentCatalog()).find((d) => d.code === code);
   if (!type) notFound();
@@ -33,7 +52,12 @@ export default async function OrderPage({ params }: { params: Promise<{ code: st
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <Card>
-          <OrderForm action={orderAction.bind(null, code)} fields={FIELDS[code]} instant={type.instant} />
+          <OrderForm
+            action={orderAction.bind(null, code)}
+            fields={FIELDS[code]}
+            instant={type.instant}
+            initial={initialValues(FIELDS[code], query)}
+          />
         </Card>
         <div className="space-y-3">
           {type.instant ? (
