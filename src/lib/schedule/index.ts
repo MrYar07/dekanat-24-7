@@ -144,3 +144,23 @@ export function upcomingChanges(today: string, slots: Slot[], changes: Change[],
     })
     .sort((a, b) => (a.change!.date < b.change!.date ? -1 : 1));
 }
+
+/**
+ * Пары, которые уже начались: за них можно отмечать посещаемость. От последней к первой.
+ * Отменённые не попадают, перенесённые — в день, на который их перенесли.
+ */
+export function startedLessons(term: { startsOn: string; weeks: number }, slots: Slot[], changes: Change[], now: MskNow): Lesson[] {
+  const last = addDays(term.startsOn, term.weeks * 7 - 1);
+  const out: Lesson[] = [];
+  for (let date = term.startsOn; date <= now.date && date <= last; date = addDays(date, 1)) {
+    for (const l of lessonsOn(date, slots, changes)) {
+      if (l.cancelled) continue;
+      if (date === now.date && toMinutes(l.startsAt) > now.minutes) continue;
+      out.push(l);
+    }
+  }
+  return out.reverse();
+}
+
+/** Пара в адресе страницы: «2026-11-18.<id слота>». */
+export const lessonKey = (l: { date: string; slotId: string }) => `${l.date}.${l.slotId}`;

@@ -8,6 +8,7 @@ import { PageTitle } from "@/components/ui/typography";
 import { getMyCourseJournal } from "@/lib/data/staff/teacher";
 import { saveScoresAction } from "../../actions";
 import { JournalForm } from "./journal-form";
+import { CourseTabs } from "./tabs";
 
 export const metadata: Metadata = { title: "Журнал курса" };
 
@@ -36,6 +37,7 @@ export default async function CourseJournalPage({
       >
         {course.discipline}
       </PageTitle>
+      <CourseTabs courseId={course.id} active="scores" />
 
       {!selected || students.length === 0 ? (
         <EmptyState icon={NotebookPen} title="Ставить пока нечего">

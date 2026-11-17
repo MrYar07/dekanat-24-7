@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { addDays, mondayOf, mskInstant, mskNow, termWeek, formatIn } from "@/lib/time";
-import { lessonsOn, upcomingChanges, upcomingDay, type Change, type Slot } from ".";
+import { lessonKey, lessonsOn, startedLessons, upcomingChanges, upcomingDay, type Change, type Slot } from ".";
 
 // 9 ноября 2026 — понедельник.
 const MON = "2026-11-09";
@@ -116,5 +116,26 @@ describe("изменения на неделю", () => {
     const list = upcomingChanges(MON, slots, changes);
     expect(list).toHaveLength(1);
     expect(list[0]).toMatchObject({ discipline: "Эконометрика", date: "2026-11-12" });
+  });
+});
+
+describe("пары для отметки посещаемости", () => {
+  const term = { startsOn: MON, weeks: 2 };
+  it("только начавшиеся, от последней к первой, без отменённых", () => {
+    // Вторник, 12:00: пары понедельника и вторничная 11:10 уже начались.
+    const now = mskNow(mskInstant(addDays(MON, 1), "12:00"));
+    const cancelled = change({ slotId: "world", date: MON, kind: "cancelled" });
+    const lessons = startedLessons(term, slots, [cancelled], now);
+    expect(lessons.map(lessonKey)).toEqual([`${addDays(MON, 1)}.econometrics`, `${MON}.macro`]);
+  });
+  it("перенесённая пара — в новый день", () => {
+    const now = mskNow(mskInstant(addDays(MON, 4), "18:00"));
+    const moved = change({ slotId: "macro", date: MON, kind: "moved", newDate: addDays(MON, 3), newStartsAt: "09:30", newEndsAt: "11:00" });
+    const keys = startedLessons(term, slots, [moved], now).map(lessonKey);
+    expect(keys).toContain(`${addDays(MON, 3)}.macro`);
+    expect(keys).not.toContain(`${MON}.macro`);
+  });
+  it("до начала триместра пар нет", () => {
+    expect(startedLessons(term, slots, [], mskNow(mskInstant(addDays(MON, -1), "12:00")))).toEqual([]);
   });
 });

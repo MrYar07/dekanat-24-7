@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { changeRequestStatus } from "@/lib/data/staff/dean";
 import { publishAnnouncement, type AnnouncementInput } from "@/lib/data/staff/dean-announcements";
 import { changeLesson, restoreLesson } from "@/lib/data/staff/dean-schedule";
-import { saveMyCheckpointScores, type ScoreEntry } from "@/lib/data/staff/teacher";
+import { saveMyAttendance, saveMyCheckpointScores, type AttendanceEntry, type AttendanceMark, type ScoreEntry } from "@/lib/data/staff/teacher";
 
 export type StatusFormState = { error?: string; note?: string; status?: string };
 
@@ -84,4 +84,25 @@ export async function restoreLessonAction(slotId: string, date: string): Promise
   if (!result.ok) return { error: result.error };
   revalidatePath("/staff/schedule");
   return { recipients: result.recipients, at: Date.now() };
+}
+
+export type AttendanceFormState = { error?: string; saved?: number; cleared?: number; absent?: number; at?: number };
+
+/** Преподаватель отмечает посещаемость пары. Поля формы: mark:<id студента> = present | absent | excused | пусто. */
+export async function saveAttendanceAction(
+  courseId: string,
+  lesson: string,
+  _prev: AttendanceFormState,
+  form: FormData,
+): Promise<AttendanceFormState> {
+  const entries: AttendanceEntry[] = [];
+  for (const [key, raw] of form.entries()) {
+    if (!key.startsWith("mark:")) continue;
+    const value = String(raw);
+    entries.push({ studentId: key.slice("mark:".length), status: value === "" ? null : (value as AttendanceMark) });
+  }
+  const result = await saveMyAttendance(courseId, lesson, entries);
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/staff", "layout");
+  return { saved: result.saved, cleared: result.cleared, absent: result.absent, at: Date.now() };
 }

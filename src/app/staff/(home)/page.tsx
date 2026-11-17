@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Award, ChartNoAxesColumn, ChevronRight, Inbox, NotebookPen, Zap } from "lucide-react";
+import { Award, CalendarCheck, ChartNoAxesColumn, ChevronRight, Inbox, NotebookPen, Zap } from "lucide-react";
 import { AchievementStatusBadge } from "@/components/achievement-status";
 import { RequestStatusBadge } from "@/components/request-status";
 import { FilterChip, FilterChips } from "@/components/ui/filter-chips";
@@ -11,6 +11,7 @@ import { getRequestQueue, isQueueFilter, QUEUE_FILTERS, type QueueFilter } from 
 import { getAchievementQueue } from "@/lib/data/staff/dean-achievements";
 import { getDeanStats } from "@/lib/data/staff/dean-stats";
 import { getMyCourses } from "@/lib/data/staff/teacher";
+import { formatShortDay } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Кабинет сотрудника" };
 
@@ -135,7 +136,7 @@ async function TeacherCourses({ name }: { name: string }) {
   const courses = await getMyCourses();
   return (
     <>
-      <PageTitle eyebrow={<span className="md:hidden">преподаватель</span>} hint="Курсы этого триместра. Балл за срез студент видит сразу и получает уведомление.">
+      <PageTitle eyebrow={<span className="md:hidden">преподаватель</span>} hint="Курсы этого триместра. Балл за срез и отметку о пропуске студент видит сразу и получает уведомление.">
         {name}
       </PageTitle>
 
@@ -146,11 +147,8 @@ async function TeacherCourses({ name }: { name: string }) {
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2">
           {courses.map((c) => (
-            <li key={c.id}>
-              <Link
-                href={`/staff/courses/${c.id}`}
-                className="border-border bg-surface hover:bg-surface-2 flex h-full items-center gap-3 rounded-xl border p-4"
-              >
+            <li key={c.id} className="border-border bg-surface flex flex-col overflow-hidden rounded-xl border">
+              <Link href={`/staff/courses/${c.id}`} className="hover:bg-surface-2 flex flex-1 items-center gap-3 p-4">
                 <span className="min-w-0 flex-1">
                   <span className="block font-serif text-lg font-bold">{c.discipline}</span>
                   <span className="text-muted block text-sm">
@@ -166,6 +164,25 @@ async function TeacherCourses({ name }: { name: string }) {
                 </span>
                 <ChevronRight className="text-muted size-5 shrink-0" aria-hidden="true" />
               </Link>
+              {c.lastLesson && (
+                <Link
+                  href={`/staff/courses/${c.id}/attendance`}
+                  className="border-border hover:bg-surface-2 flex items-center gap-2 border-t px-4 py-2.5 text-sm"
+                >
+                  <CalendarCheck className="text-muted size-4 shrink-0" aria-hidden="true" />
+                  <span className="min-w-0 flex-1">
+                    Посещаемость, {formatShortDay(c.lastLesson.date)} {c.lastLesson.startsAt}:{" "}
+                    {c.lastLesson.marked >= c.students ? (
+                      <span className="text-muted">отмечены все</span>
+                    ) : (
+                      <b className="font-semibold">
+                        {c.lastLesson.marked === 0 ? "не отмечена" : `отмечено ${c.lastLesson.marked} из ${c.students}`}
+                      </b>
+                    )}
+                  </span>
+                  <ChevronRight className="text-muted size-4 shrink-0" aria-hidden="true" />
+                </Link>
+              )}
             </li>
           ))}
         </ul>
