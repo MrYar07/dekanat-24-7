@@ -449,3 +449,41 @@ export const calendarFeeds = pgTable("calendar_feeds", {
   token: text("token").notNull().unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Оценка преподавания
+
+/**
+ * Анонимный ответ студента о курсе. Намеренно без studentId и без времени: по строке нельзя узнать,
+ * кто и когда ответил. Преподаватель видит только сводку и только когда ответов не меньше порога.
+ */
+export const courseFeedback = pgTable(
+  "course_feedback",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    /** Понятно ли объясняет, 1–5. */
+    clarity: smallint("clarity").notNull(),
+    /** Полезны ли занятия, 1–5. */
+    usefulness: smallint("usefulness").notNull(),
+    /** Справедливо ли оценивает, 1–5. */
+    fairness: smallint("fairness").notNull(),
+    comment: text("comment"),
+  },
+  (t) => [index("course_feedback_course_idx").on(t.courseId)],
+);
+
+/** Кто уже ответил: только чтобы не дать ответить дважды. С ответом не связано. */
+export const courseFeedbackVotes = pgTable(
+  "course_feedback_votes",
+  {
+    courseId: uuid("course_id")
+      .notNull()
+      .references(() => courses.id, { onDelete: "cascade" }),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.courseId, t.studentId] })],
+);

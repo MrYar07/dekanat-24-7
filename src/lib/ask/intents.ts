@@ -21,6 +21,7 @@ export const SECTIONS = {
   goal: { title: "Путь к цели", href: "/grades/goal", hint: "сколько набрать до стипендии, гранта или автомата" },
   standing: { title: "Место на курсе", href: "/grades#standing-title", hint: "место без фамилий и чужих баллов" },
   archive: { title: "Архив и годовой рейтинг", href: "/grades/archive", hint: "прошлые триместры и пересдачи" },
+  feedback: { title: "Оценка преподавания", href: "/grades/feedback", hint: "анонимно оценить курсы триместра" },
   achievement: { title: "Добавить достижение", href: "/grades/achievements/new", hint: "олимпиада, конференция, публикация — баллы к рейтингу" },
   schedule: { title: "Расписание", href: "/schedule", hint: "неделя с переносами и отменами" },
   calendar: { title: "Расписание в календаре телефона", href: "/schedule/calendar", hint: "подписка для Google, Apple и Яндекса" },
@@ -94,6 +95,8 @@ export function parseQuestion(raw: string): Intent[] {
     add({ kind: "section", section: "goal" });
   if (has(q, "место", "месте", "какой я", "сравни")) add({ kind: "section", section: "standing" });
   if (has(q, "архив", "прошл", "пересдач", "годов", "за год")) add({ kind: "section", section: "archive" });
+  if (has(q, "отзыв", "анкет", "оценить препод", "оценка препод", "оценить курс", "пожаловаться", "жалоб"))
+    add({ kind: "section", section: "feedback" });
   if (has(q, "достижен", "олимпиад", "конференц", "публикац", "грамот", "диплом", "конкурс")) add({ kind: "section", section: "achievement" });
   if (has(q, "пропуск", "посещаем", "прогул", "отметк")) add({ kind: "section", section: "grades" });
 

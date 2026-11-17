@@ -5,7 +5,7 @@
 // второй срез только что прошёл, третий — через две недели. Демо не устаревает, сколько бы его ни открывали.
 import "dotenv/config";
 import { randomBytes } from "node:crypto";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as s from "../src/db/schema";
@@ -172,7 +172,7 @@ async function main() {
       .innerJoin(s.users, eq(s.users.id, s.calendarFeeds.studentId));
 
     await tx.execute(sql`TRUNCATE
-      calendar_feeds, notifications, announcements, issued_documents, request_events, requests, document_types,
+      course_feedback_votes, course_feedback, calendar_feeds, notifications, announcements, issued_documents, request_events, requests, document_types,
       achievement_files, achievements, achievement_kinds, grading_settings,
       course_results, attendance, checkpoint_scores, checkpoints, lesson_changes, timetable_slots, courses, disciplines, terms,
       login_attempts, sessions, student_profiles, staff_profiles, users, groups, programs, faculties
@@ -651,6 +651,43 @@ async function main() {
           );
         }
       }
+    }
+
+    // Оценка преподавания. У курсов логина teacher в ГЭ-24-1 шесть ответов одногруппников — сводка видна;
+    // в МП-23-2 три — сводка ещё скрыта, виден порог. Главные студенты не отвечали: могут оценить сами.
+    const teacherKey = Object.entries(TEACHERS).find(([, t]) => t.login === "teacher")![0];
+    const teacherCourses = await tx
+      .select({ id: s.courses.id, groupId: s.courses.groupId })
+      .from(s.courses)
+      .where(and(eq(s.courses.teacherId, teacherIds[teacherKey]), eq(s.courses.termId, term.id)));
+    const FEEDBACK: Record<string, { mates: string[]; rows: [number, number, number, string | null][] }> = {
+      [ge2.id]: {
+        mates: geMates,
+        rows: [
+          [5, 5, 4, "Много практики на настоящих текстах — это лучшее в курсе."],
+          [4, 5, 4, null],
+          [5, 4, 5, "Хотелось бы больше разговорной практики в парах."],
+          [4, 4, 3, "Критерии оценки эссе стоит объяснять до сдачи, а не после."],
+          [5, 5, 5, null],
+          [3, 4, 4, null],
+        ],
+      },
+      [mp3.id]: {
+        mates: mpMates,
+        rows: [
+          [4, 4, 5, null],
+          [5, 4, 4, "Спасибо за быстрые ответы на почту."],
+          [4, 3, 4, null],
+        ],
+      },
+    };
+    for (const c of teacherCourses) {
+      const f = FEEDBACK[c.groupId];
+      if (!f) continue;
+      await tx.insert(s.courseFeedbackVotes).values(f.rows.map((_, i) => ({ courseId: c.id, studentId: f.mates[i] })));
+      await tx
+        .insert(s.courseFeedback)
+        .values(f.rows.map(([clarity, usefulness, fairness, comment]) => ({ courseId: c.id, clarity, usefulness, fairness, comment })));
     }
 
     // Объявления и уведомления

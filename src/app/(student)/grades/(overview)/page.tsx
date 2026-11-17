@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Archive, Calculator, Check, Circle, ExternalLink, FileText, Paperclip, Plus, Target, TrendingUp } from "lucide-react";
+import { Archive, Calculator, Check, Circle, ExternalLink, FileText, MessageSquareHeart, Paperclip, Plus, Target, TrendingUp } from "lucide-react";
 import { AchievementStatusBadge } from "@/components/achievement-status";
 import { AnimatedNumber } from "@/components/animated-number";
 import { StandingCard } from "@/components/standing-card";
@@ -354,6 +354,19 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
         <Link href="/grades/achievements/new" className={buttonClass("secondary", "mt-4 w-full text-sm sm:w-auto")}>
           <Plus className="size-4" aria-hidden="true" />
           Добавить достижение
+        </Link>
+      </section>
+
+      <section aria-labelledby="feedback-title" className="mt-8">
+        <SectionTitle>
+          <span id="feedback-title">Оценка преподавания</span>
+        </SectionTitle>
+        <p className="text-muted text-sm">
+          Три вопроса о каждом курсе, анонимно. Преподаватель увидит только сводку по группе.
+        </p>
+        <Link href="/grades/feedback" className={buttonClass("secondary", "mt-3 w-full text-sm sm:w-auto")}>
+          <MessageSquareHeart className="size-4" aria-hidden="true" />
+          Оценить курсы триместра
         </Link>
       </section>
     </>

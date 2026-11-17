@@ -32,7 +32,7 @@ describe("слой данных студента", () => {
     expect(f.params).not.toMatch(/user|student/i);
     // id объекта (заявки, уведомления, достижения) допустим, только если выборка ограничена пользователем из сессии.
     if (/id/i.test(f.params)) {
-      expect(f.body).toMatch(/eq\(((requests|issuedDocuments|achievements)\.studentId|notifications\.userId), user\.id\)/);
+      expect(f.body).toMatch(/eq\(((requests|issuedDocuments|achievements|courseFeedbackVotes)\.studentId|notifications\.userId), user\.id\)/);
     }
   });
 

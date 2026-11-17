@@ -64,6 +64,7 @@ describe("parseQuestion", () => {
     expect(first("добавить расписание в календарь")).toEqual({ kind: "section", section: "calendar" });
     expect(first("студенческий билет")).toEqual({ kind: "section", section: "card" });
     expect(first("статус моей заявки")).toEqual({ kind: "section", section: "requests" });
+    expect(first("хочу оценить преподавателя")).toEqual({ kind: "section", section: "feedback" });
   });
 
   it("непонятный вопрос — пустой ответ, а не случайный раздел", () => {

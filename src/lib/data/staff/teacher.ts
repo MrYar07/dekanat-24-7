@@ -5,6 +5,7 @@ import {
   attendance,
   checkpointScores,
   checkpoints,
+  courseFeedback,
   courses,
   disciplines,
   groups,
@@ -16,6 +17,7 @@ import {
   users,
 } from "@/db/schema";
 import { requireRole } from "@/lib/auth/dal";
+import { summarize } from "@/lib/feedback";
 import { lessonKey, startedLessons, type Change, type Slot } from "@/lib/schedule";
 import { formatDay, mskNow } from "@/lib/time";
 
@@ -471,4 +473,27 @@ export async function saveMyAttendance(courseId: string, key: string, entries: A
     }
     return { ok: true, saved: changed.length, cleared: cleared.length, absent: absent.length } as const;
   });
+}
+
+/**
+ * Отзывы студентов о курсе. Ниже порога — только число ответов: при двух-трёх ответах
+ * легко догадаться, кто что поставил. Кто именно ответил, преподаватель не видит никогда.
+ */
+export async function getMyCourseFeedback(courseId: string) {
+  const user = await requireRole("teacher");
+  const course = await ownCourse(courseId, user.id);
+  if (!course) return null;
+  const [rows, [group]] = await Promise.all([
+    db
+      .select({
+        clarity: courseFeedback.clarity,
+        usefulness: courseFeedback.usefulness,
+        fairness: courseFeedback.fairness,
+        comment: courseFeedback.comment,
+      })
+      .from(courseFeedback)
+      .where(eq(courseFeedback.courseId, course.id)),
+    db.select({ n: count() }).from(studentProfiles).where(eq(studentProfiles.groupId, course.groupId)),
+  ]);
+  return { course, students: group?.n ?? 0, summary: summarize(rows) };
 }
