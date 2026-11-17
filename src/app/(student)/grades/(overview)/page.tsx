@@ -180,7 +180,7 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
             <p className="text-muted font-serif text-sm italic">
               Рейтинг триместра{r.forecast && " · прогноз"}
             </p>
-            <p className="mt-1 font-serif text-[44px] leading-none font-bold tabular-nums">
+            <p className="mt-1 font-serif text-[2.75rem] leading-none font-bold tabular-nums">
               <AnimatedNumber key={me?.id} value={r.rating} storageKey={`rating:${me?.id}`} />
             </p>
             <Ledger className="mt-4">
@@ -276,7 +276,7 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
             Внимания {attention === 1 ? "требует" : "требуют"} {attention} из {g.courses.length}: причина написана в карточке.
           </p>
         )}
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {g.courses.map((c) => (
             <CourseCard key={c.id} c={c} s={s} week={g.term!.week} />
           ))}

@@ -93,7 +93,7 @@ export default async function TodayPage() {
                   )}
                 </p>
                 <div className="mt-2 flex items-baseline gap-3">
-                  <p className="font-serif text-[32px] leading-none font-bold tabular-nums">{focus.startsAt}</p>
+                  <p className="font-serif text-[2rem] leading-none font-bold tabular-nums">{focus.startsAt}</p>
                   <p className="text-muted text-sm tabular-nums">– {focus.endsAt}</p>
                 </div>
                 <p className="mt-2 font-serif text-lg leading-snug font-bold">{focus.discipline}</p>

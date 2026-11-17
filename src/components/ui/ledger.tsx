@@ -14,11 +14,12 @@ export function LedgerRow({
   note?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-baseline gap-2 text-sm">
+    // flex-wrap: при крупном шрифте значение уходит на следующую строку вправо, а не сжимает название в столбик.
+    <div className="flex flex-wrap items-baseline gap-x-2 text-sm">
       <dt className="min-w-0">{label}</dt>
       <span aria-hidden="true" className="border-border min-w-4 flex-1 -translate-y-1 border-b border-dotted" />
-      <dd className="shrink-0 text-right">
-        <span className="font-serif text-[17px] font-bold tabular-nums">{value}</span>
+      <dd className="ml-auto min-w-0 text-right">
+        <span className="font-serif text-[1.0625rem] font-bold tabular-nums">{value}</span>
         {note && <span className="text-muted ml-1 text-xs font-semibold">{note}</span>}
       </dd>
     </div>

@@ -23,7 +23,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
 
       {!doc ? (
         <>
-          <h1 className="flex items-center gap-2 font-serif text-[26px] leading-tight font-bold">
+          <h1 className="flex items-center gap-2 font-serif text-[1.625rem] leading-tight font-bold">
             <ShieldAlert className="text-warn size-7 shrink-0" aria-hidden="true" />
             Документ не найден
           </h1>
@@ -34,7 +34,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ code: s
         </>
       ) : (
         <>
-          <h1 className="flex items-center gap-2 font-serif text-[26px] leading-tight font-bold">
+          <h1 className="flex items-center gap-2 font-serif text-[1.625rem] leading-tight font-bold">
             {doc.valid ? (
               <ShieldCheck className="text-ok size-7 shrink-0" aria-hidden="true" />
             ) : (

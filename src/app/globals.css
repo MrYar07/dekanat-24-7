@@ -111,6 +111,167 @@
   display: revert;
 }
 
+/* Версия для слабовидящих (src/lib/a11y.ts, ГОСТ Р 52872): размер шрифта, три схемы высокой контрастности,
+   увеличенные интервалы. Схемы перекрывают и светлую, и тёмную тему: у html:root специфичность выше.
+   Контраст текста к фону в каждой схеме — не меньше 7:1 (AAA), посчитан в журнале, этап 28. */
+html[data-font="lg"] {
+  font-size: 125%;
+}
+html[data-font="xl"] {
+  font-size: 150%;
+}
+
+html:root[data-contrast="bw"] {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #ededed;
+  --text: #000000;
+  --text-muted: #262626;
+  --border: #595959;
+  --border-strong: #000000;
+  --brand: #0b2a8c;
+  --brand-ink: #ffffff;
+  --brand-soft: #dde4f7;
+  --ok: #084a1d;
+  --ok-soft: #ddeedd;
+  --warn: #6b3a00;
+  --warn-soft: #f6e8cc;
+  --danger: #8f0000;
+  --danger-soft: #fbe0e0;
+  --stamp: #4a1f99;
+  --notice: #ededed;
+  --notice-ink: #000000;
+  --cover: #000000;
+  --cover-ink: #ffffff;
+  --cover-muted: #e0e0e0;
+  --cover-line: rgb(255 255 255 / 0.45);
+  --cover-hover: rgb(255 255 255 / 0.15);
+  color-scheme: light;
+}
+
+html:root[data-contrast="wb"] {
+  --bg: #000000;
+  --surface: #000000;
+  --surface-2: #1c1c1c;
+  --text: #ffffff;
+  --text-muted: #e6e6e6;
+  --border: #9a9a9a;
+  --border-strong: #ffffff;
+  --brand: #ffe14d;
+  --brand-ink: #000000;
+  --brand-soft: #332b00;
+  --ok: #7dff9a;
+  --ok-soft: #0d2a14;
+  --warn: #ffc266;
+  --warn-soft: #2e2000;
+  --danger: #ff8c8c;
+  --danger-soft: #3a0d0d;
+  --stamp: #e0c2ff;
+  --notice: #1c1c1c;
+  --notice-ink: #ffffff;
+  --cover: #000000;
+  --cover-ink: #ffffff;
+  --cover-muted: #e6e6e6;
+  --cover-line: rgb(255 255 255 / 0.5);
+  --cover-hover: rgb(255 255 255 / 0.15);
+  color-scheme: dark;
+}
+
+html:root[data-contrast="blue"] {
+  --bg: #9dd1ff;
+  --surface: #bfe1ff;
+  --surface-2: #86c3f7;
+  --text: #02264d;
+  --text-muted: #02264d;
+  --border: #2f6299;
+  --border-strong: #02264d;
+  --brand: #02264d;
+  --brand-ink: #bfe1ff;
+  --brand-soft: #a8d4fa;
+  --ok: #003d17;
+  --ok-soft: #b3e6c6;
+  --warn: #4d2c00;
+  --warn-soft: #f1dfb5;
+  --danger: #7a0000;
+  --danger-soft: #f3c9c9;
+  --stamp: #3b1580;
+  --notice: #86c3f7;
+  --notice-ink: #02264d;
+  --cover: #02264d;
+  --cover-ink: #bfe1ff;
+  --cover-muted: #9dd1ff;
+  --cover-line: rgb(191 225 255 / 0.45);
+  --cover-hover: rgb(191 225 255 / 0.15);
+  color-scheme: light;
+}
+
+/* Пока версия для слабовидящих включена, кнопку «глаз» в шапке заменяет панель настроек над страницей. */
+html[data-a11y] .a11y-toggle {
+  display: none;
+}
+
+/* В контрастных схемах значок темы не нужен: цвета задаёт схема. */
+html[data-contrast] .theme-toggle {
+  display: none;
+}
+
+/* Интервалы по WCAG 1.4.12: шире между буквами и словами, выше строка. */
+html[data-spacing="wide"] body {
+  letter-spacing: 0.06em;
+  word-spacing: 0.16em;
+}
+html[data-spacing="wide"] body * {
+  line-height: 1.7;
+}
+
+/* Крупный шрифт на узком экране: длинное слово переносится, а не раздвигает страницу вбок. */
+html[data-a11y] body {
+  overflow-wrap: anywhere;
+  hyphens: auto;
+}
+html[data-a11y] body .whitespace-nowrap {
+  white-space: normal;
+}
+/* Подписи нижних вкладок: короткие варианты и перенос вместо многоточия. */
+.a11y-only {
+  display: none;
+}
+html[data-a11y] .a11y-only {
+  display: inline;
+}
+html[data-a11y] .a11y-hide {
+  display: none;
+}
+html[data-a11y] .nav-label {
+  white-space: normal;
+  text-overflow: clip;
+  overflow-wrap: normal;
+  line-height: 1.15;
+  letter-spacing: 0;
+}
+/* На вкладку ~70 px: при «очень крупном» подпись остаётся на уровне «крупного», рядом большой значок. */
+html[data-font="xl"] .nav-label {
+  font-size: 0.5625rem;
+}
+
+/* Ячейка сетки не шире самой сетки, даже если внутри длинное слово. */
+html[data-a11y] .grid > * {
+  min-width: 0;
+}
+
+/* Для слабовидящих — без движения и с толстым кольцом фокуса. */
+html[data-a11y] *,
+html[data-a11y] *::before,
+html[data-a11y] *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition: none !important;
+}
+html[data-a11y] :focus-visible {
+  outline-width: 3px;
+  outline-offset: 3px;
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);

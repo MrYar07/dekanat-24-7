@@ -21,7 +21,7 @@ function Tile({ label, value, note }: { label: string; value: string; note: stri
   return (
     <Card className="p-4!">
       <p className="text-muted text-sm leading-snug">{label}</p>
-      <p className="mt-1 font-serif text-[32px] leading-none font-bold tabular-nums">{value}</p>
+      <p className="mt-1 font-serif text-[2rem] leading-none font-bold tabular-nums">{value}</p>
       <p className="text-muted mt-2 text-xs leading-snug">{note}</p>
     </Card>
   );

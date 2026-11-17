@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { cookies } from "next/headers";
+import { A11yBar } from "@/components/a11y";
 import { ConceptBanner } from "@/components/concept-banner";
 import { DemoGuide } from "@/components/demo-guide";
 import { getCurrentUser } from "@/lib/auth/dal";
@@ -9,6 +10,7 @@ import "@fontsource-variable/golos-text";
 import "@fontsource/pt-serif/400.css";
 import "@fontsource/pt-serif/400-italic.css";
 import "@fontsource/pt-serif/700.css";
+import { A11Y_COOKIE, a11yAttributes, CONTRAST_COLOR, parseA11y } from "@/lib/a11y";
 import { isTheme, THEME_COLOR, THEME_COOKIE, type Theme } from "@/lib/theme";
 import "./globals.css";
 
@@ -24,26 +26,34 @@ async function chosenTheme(): Promise<Theme | null> {
   return isTheme(value) ? value : null;
 }
 
+/** Версия для слабовидящих: null — обычная. */
+async function chosenA11y() {
+  return parseA11y((await cookies()).get(A11Y_COOKIE)?.value);
+}
+
 export async function generateViewport(): Promise<Viewport> {
-  const theme = await chosenTheme();
+  const [theme, a11y] = await Promise.all([chosenTheme(), chosenA11y()]);
   return {
     width: "device-width",
     initialScale: 1,
-    themeColor: theme
-      ? THEME_COLOR[theme]
-      : [
-          { media: "(prefers-color-scheme: light)", color: THEME_COLOR.light },
-          { media: "(prefers-color-scheme: dark)", color: THEME_COLOR.dark },
-        ],
+    themeColor:
+      a11y && a11y.contrast !== "normal"
+        ? CONTRAST_COLOR[a11y.contrast]
+        : theme
+          ? THEME_COLOR[theme]
+          : [
+              { media: "(prefers-color-scheme: light)", color: THEME_COLOR.light },
+              { media: "(prefers-color-scheme: dark)", color: THEME_COLOR.dark },
+            ],
   };
 }
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [theme, user] = await Promise.all([chosenTheme(), getCurrentUser()]);
+  const [theme, a11y, user] = await Promise.all([chosenTheme(), chosenA11y(), getCurrentUser()]);
   // Путеводитель и переключатель ролей — только тем, кто вошёл под одним из демо-аккаунтов.
   const demo = demoEnabled() && user && isDemoLogin(user.login) ? user.login : null;
   return (
-    <html lang="ru" data-theme={theme ?? undefined}>
+    <html lang="ru" data-theme={theme ?? undefined} {...a11yAttributes(a11y)}>
       <body className="min-h-dvh antialiased">
         <a
           href="#main"
@@ -52,6 +62,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           Перейти к содержимому
         </a>
         <ConceptBanner />
+        {a11y && <A11yBar initial={a11y} />}
         {children}
         {/* key: после переключения аккаунта путеводитель начинается закрытым. */}
         {demo && <DemoGuide key={demo} me={demo} />}

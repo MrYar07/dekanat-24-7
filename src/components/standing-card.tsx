@@ -18,7 +18,7 @@ export function StandingCard({ s, course }: { s: Standing; course: number }) {
     <Card>
       <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] sm:items-end">
         <div>
-          <p className="font-serif text-[40px] leading-none font-bold tabular-nums">
+          <p className="font-serif text-[2.5rem] leading-none font-bold tabular-nums">
             {s.place}-е <span className="text-2xl">место</span>
           </p>
           <p className="mt-1.5 text-sm">
@@ -53,7 +53,7 @@ export function StandingCard({ s, course }: { s: Standing; course: number }) {
           </ul>
           <div aria-hidden="true" className="border-border-strong flex gap-1.5 border-t pt-1">
             {s.bins.map((b) => (
-              <span key={b.from} className="text-muted min-w-0 flex-1 text-center text-[11px] tabular-nums">
+              <span key={b.from} className="text-muted min-w-0 flex-1 text-center text-[0.6875rem] tabular-nums">
                 {b.from}
               </span>
             ))}

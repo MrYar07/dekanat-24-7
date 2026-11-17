@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react";
 import { logout } from "@/app/login/actions";
 import { Cover, CoverBar } from "@/components/cover";
 import { DeanNav } from "@/components/staff-nav";
+import { A11yToggle } from "@/components/a11y";
 import { ThemeToggle } from "@/components/theme";
 import { requireRole } from "@/lib/auth/dal";
 
@@ -25,6 +26,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
         lines={[role.label]}
       />
       <CoverBar home="/staff">
+        <A11yToggle tone="cover" />
         <ThemeToggle tone="cover" />
         <form action={logout}>
           <button type="submit" aria-label="Выйти" className="text-cover-muted hover:text-cover-ink -mr-2 rounded-full p-2">

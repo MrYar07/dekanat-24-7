@@ -136,7 +136,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
                       className={`flex gap-3 py-3 sm:gap-5 ${going ? "bg-brand-soft -mx-3 rounded-lg px-3" : ""}`}
                     >
                       <div className={`w-12 shrink-0 tabular-nums ${l.cancelled ? "text-muted line-through" : ""}`}>
-                        <p className="font-serif text-[17px] leading-tight font-bold">{l.startsAt}</p>
+                        <p className="font-serif text-[1.0625rem] leading-tight font-bold">{l.startsAt}</p>
                         <p className="text-muted text-xs">{l.endsAt}</p>
                       </div>
                       <div className="min-w-0 flex-1">

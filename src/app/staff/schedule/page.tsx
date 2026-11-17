@@ -73,7 +73,7 @@ export default async function DeanSchedulePage({ searchParams }: { searchParams:
                 <>
                   <span className="block text-xs">{WEEKDAY[weekdayOf(d.date) - 1]}</span>
                   <span className="block font-serif text-lg leading-tight font-bold tabular-nums">{Number(d.date.slice(8))}</span>
-                  <span className="block text-[11px] tabular-nums">{d.lessons > 0 ? `${d.lessons} ${d.lessons === 1 ? "пара" : d.lessons < 5 ? "пары" : "пар"}` : "—"}</span>
+                  <span className="block text-[0.6875rem] tabular-nums">{d.lessons > 0 ? `${d.lessons} ${d.lessons === 1 ? "пара" : d.lessons < 5 ? "пары" : "пар"}` : "—"}</span>
                 </>
               );
               return (

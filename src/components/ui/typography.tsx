@@ -14,7 +14,7 @@ export function PageTitle({
   return (
     <div className="mb-6">
       {eyebrow && <p className="text-muted mb-1 font-serif text-sm italic">{eyebrow}</p>}
-      <h1 className="font-serif text-[28px] leading-[1.15] font-bold tracking-[-0.01em]">{children}</h1>
+      <h1 className="font-serif text-[1.75rem] leading-[1.15] font-bold tracking-[-0.01em]">{children}</h1>
       {hint && <p className="text-muted mt-1.5 max-w-[65ch] text-sm leading-normal">{hint}</p>}
     </div>
   );
@@ -24,8 +24,8 @@ export function PageTitle({
 export function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="mb-3 flex items-center gap-3">
-      <h2 className="text-muted shrink-0 text-[13px] font-semibold">{children}</h2>
-      <span aria-hidden="true" className="bg-border h-px flex-1" />
+      <h2 className="text-muted min-w-0 text-[0.8125rem] font-semibold">{children}</h2>
+      <span aria-hidden="true" className="bg-border h-px min-w-4 flex-1" />
       {action}
     </div>
   );

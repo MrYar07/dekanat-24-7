@@ -121,7 +121,7 @@ export function WhatIf({
                   <ArrowRight className="text-muted size-4 self-center" aria-label="станет" />
                 </>
               )}
-              <span className="font-serif text-[32px] leading-none font-bold tabular-nums">{one.format(after.rating)}</span>
+              <span className="font-serif text-[2rem] leading-none font-bold tabular-nums">{one.format(after.rating)}</span>
               <span className="text-sm font-semibold tabular-nums">{touched ? signed(delta) : "рейтинг сейчас"}</span>
             </div>
             <Button

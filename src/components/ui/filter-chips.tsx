@@ -36,7 +36,7 @@ export function FilterChip({
     >
       {label}
       {count ? (
-        <span className="bg-brand text-brand-ink rounded-full px-1.5 text-[11px] leading-[18px] font-bold tabular-nums">
+        <span className="bg-brand text-brand-ink rounded-full px-1.5 text-[0.6875rem] leading-[1.125rem] font-bold tabular-nums">
           {count}
           <span className="sr-only"> {countLabel}</span>
         </span>

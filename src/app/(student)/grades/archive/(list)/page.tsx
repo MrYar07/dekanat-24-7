@@ -35,7 +35,7 @@ function TermRow({ t }: { t: TermSummary }) {
         </span>
         {r ? (
           <span className="shrink-0 text-right">
-            <span className="block font-serif text-[17px] font-bold tabular-nums">{one.format(r.base)}</span>
+            <span className="block font-serif text-[1.0625rem] font-bold tabular-nums">{one.format(r.base)}</span>
             <span className="text-muted block text-xs tabular-nums">
               {r.bonus > 0 ? `+${one.format(r.bonus)} бонус → ${one.format(r.rating)}` : "без бонуса"}
             </span>
@@ -94,7 +94,7 @@ export default async function ArchivePage() {
                 <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_14rem] sm:items-start">
                   <div>
                     <p className="text-muted text-sm">{y.complete ? "Годовой рейтинг" : "Годовой рейтинг, прогноз"}</p>
-                    <p className="font-serif text-[40px] leading-none font-bold tabular-nums" aria-label={`Годовой рейтинг ${y.academicYear}`}>
+                    <p className="font-serif text-[2.5rem] leading-none font-bold tabular-nums" aria-label={`Годовой рейтинг ${y.academicYear}`}>
                       {y.rating === null ? "—" : one.format(y.rating)}
                     </p>
                     <p className="text-muted mt-1.5 text-sm">

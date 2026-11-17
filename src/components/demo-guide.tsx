@@ -242,7 +242,7 @@ export function DemoGuide({ me }: { me: DemoLogin }) {
             Восемь сценариев показывают кабинет целиком. Данные сбрасываются каждую ночь, так что ломать не страшно.
           </p>
 
-          <h3 className="text-muted mt-5 mb-2 text-[13px] font-semibold">Смотреть как</h3>
+          <h3 className="text-muted mt-5 mb-2 text-[0.8125rem] font-semibold">Смотреть как</h3>
           <div className="grid grid-cols-2 gap-2">
             {DEMO_LOGINS.map((login) => {
               const a = DEMO_ACCOUNTS[login];
@@ -269,7 +269,7 @@ export function DemoGuide({ me }: { me: DemoLogin }) {
           </div>
 
           <div className="mt-6 mb-2 flex items-baseline justify-between gap-3">
-            <h3 className="text-muted text-[13px] font-semibold">Сценарии</h3>
+            <h3 className="text-muted text-[0.8125rem] font-semibold">Сценарии</h3>
             <p className="text-muted text-xs tabular-nums">
               пройдено {state.done.length} из {SCENARIOS.length}
             </p>

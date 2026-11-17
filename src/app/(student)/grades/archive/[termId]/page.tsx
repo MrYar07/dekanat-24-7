@@ -49,7 +49,7 @@ export default async function ArchivedTermPage({ params }: { params: Promise<{ t
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="text-muted font-serif text-sm italic">Рейтинг триместра</p>
-              <p className="mt-1 font-serif text-[44px] leading-none font-bold tabular-nums">{one.format(r.rating)}</p>
+              <p className="mt-1 font-serif text-[2.75rem] leading-none font-bold tabular-nums">{one.format(r.rating)}</p>
             </div>
             <div className="flex flex-wrap gap-1.5">
               {t.retakes > 0 && <StatusBadge tone="warn">{t.retakes === 1 ? "была пересдача" : `пересдач: ${t.retakes}`}</StatusBadge>}

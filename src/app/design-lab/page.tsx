@@ -64,10 +64,10 @@ export default function DesignLabPage() {
 
       <Block title="Шрифты">
         <div className="space-y-3">
-          <p className="font-serif text-[28px] leading-tight font-bold">PT Serif — заголовки и цифры: 89,4</p>
+          <p className="font-serif text-[1.75rem] leading-tight font-bold">PT Serif — заголовки и цифры: 89,4</p>
           <p className="text-muted font-serif italic">PT Serif курсив — дата и пометки: пятница, 6 ноября</p>
           <p>Golos Text — основной текст интерфейса, подписи, кнопки и формы.</p>
-          <p className="text-muted text-[13px] font-semibold">Подпись графы — заголовки разделов</p>
+          <p className="text-muted text-[0.8125rem] font-semibold">Подпись графы — заголовки разделов</p>
         </div>
       </Block>
 
@@ -142,7 +142,7 @@ export default function DesignLabPage() {
               <time className="text-brand pt-0.5 font-serif font-bold tabular-nums">11:10</time>
               <div>
                 <p className="font-serif text-lg leading-snug font-bold">Макроэкономика</p>
-                <p className="text-muted flex flex-wrap gap-x-3 text-[13px]">
+                <p className="text-muted flex flex-wrap gap-x-3 text-[0.8125rem]">
                   <span className="inline-flex items-center gap-1">
                     <Clock className="size-3.5" aria-hidden="true" /> через 25 мин
                   </span>
@@ -156,7 +156,7 @@ export default function DesignLabPage() {
               <time className="text-muted pt-0.5 font-serif tabular-nums">13:00</time>
               <div>
                 <p className="font-semibold">Мировая экономика</p>
-                <p className="text-muted text-[13px]">ауд. 218</p>
+                <p className="text-muted text-[0.8125rem]">ауд. 218</p>
               </div>
             </li>
           </ol>

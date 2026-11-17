@@ -40,7 +40,7 @@ export function ThemeToggle({ className = "", tone = "paper" }: { className?: st
         // Цвет панели браузера приходит с сервера: обновляем его под новую тему.
         router.refresh();
       }}
-      className={`rounded-full p-2 ${tone === "cover" ? "text-cover-muted hover:text-cover-ink" : "text-muted hover:text-text"} ${className}`}
+      className={`theme-toggle rounded-full p-2 ${tone === "cover" ? "text-cover-muted hover:text-cover-ink" : "text-muted hover:text-text"} ${className}`}
     >
       <Moon className="only-light size-5" aria-hidden="true" />
       <Sun className="only-dark size-5" aria-hidden="true" />

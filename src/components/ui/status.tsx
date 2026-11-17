@@ -16,7 +16,7 @@ export function StatusBadge({ tone, children }: { tone: StatusTone; children: Re
   const { className, icon: Icon } = TONES[tone];
   return (
     <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-semibold whitespace-nowrap ${className}`}>
-      {Icon && <Icon className="size-3.5" aria-hidden="true" />}
+      {Icon && <Icon className="size-3.5 shrink-0" aria-hidden="true" />}
       {children}
     </span>
   );
@@ -25,7 +25,7 @@ export function StatusBadge({ tone, children }: { tone: StatusTone; children: Re
 /** Штамп в строке списка: «готово», «выдано», «+40». Прямоугольный, как штамп канцелярии. */
 export function Stamp({ children = "готово" }: { children?: React.ReactNode }) {
   return (
-    <span className="border-stamp text-stamp inline-flex -rotate-3 items-center gap-1 rounded-[3px] border-2 px-2 py-0.5 text-[11px] font-extrabold tracking-[0.1em] whitespace-nowrap uppercase">
+    <span className="border-stamp text-stamp inline-flex -rotate-3 items-center gap-1 rounded-[3px] border-2 px-2 py-0.5 text-[0.6875rem] font-extrabold tracking-[0.1em] whitespace-nowrap uppercase">
       <CircleCheck className="size-3.5" aria-hidden="true" />
       {children}
     </span>

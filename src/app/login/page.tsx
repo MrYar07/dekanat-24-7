@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { LogoMark } from "@/components/logo";
+import { A11yToggle } from "@/components/a11y";
 import { ThemeToggle } from "@/components/theme";
 import { Callout } from "@/components/ui/callout";
 import { getCurrentUser, homePathFor } from "@/lib/auth/dal";
@@ -17,19 +18,25 @@ export default async function LoginPage() {
       {/* Обложка зачётки: на широком экране — левая половина, на телефоне — полоса над формой. */}
       <div className="cover bg-cover text-cover-ink relative flex flex-col px-6 py-7 md:px-12 md:py-12">
         {/* Рамка-тиснение, как на переплёте. */}
-        <div aria-hidden="true" className="border-cover-line pointer-events-none absolute inset-3 hidden rounded-sm border md:block" />
+        <div
+          aria-hidden="true"
+          className="border-cover-line pointer-events-none absolute inset-3 hidden rounded-sm border md:block"
+        />
         <div className="flex items-center justify-between gap-3 md:block">
           <div className="flex items-center gap-3 md:block">
             <LogoMark size={44} className="md:hidden" />
             <LogoMark size={76} className="hidden md:block" />
             <div className="md:mt-8">
-              <p className="font-serif text-2xl leading-tight font-bold tracking-[-0.01em] md:text-[44px] md:leading-[1.05]">
+              <p className="font-serif text-2xl leading-tight font-bold tracking-[-0.01em] md:text-[2.75rem] md:leading-[1.05]">
                 Деканат 24/7
               </p>
               <p className="text-cover-muted font-serif text-sm italic md:mt-2 md:text-base">университет «Меридиан»</p>
             </div>
           </div>
-          <ThemeToggle tone="cover" className="-mr-2 md:absolute md:top-8 md:right-8" />
+          <div className="-mr-2 flex items-center md:absolute md:top-8 md:right-8">
+            <A11yToggle tone="cover" />
+            <ThemeToggle tone="cover" />
+          </div>
         </div>
         <p className="mt-auto hidden max-w-sm pt-10 font-serif text-xl leading-snug md:block">
           Ни одного лишнего похода в деканат и ни одной оценки, о которой узнаёшь в конце триместра.
@@ -37,7 +44,7 @@ export default async function LoginPage() {
       </div>
 
       <main id="main" className="mx-auto flex w-full max-w-sm flex-col justify-center px-4 py-8 md:py-10">
-        <h1 className="font-serif text-[28px] leading-[1.15] font-bold tracking-[-0.01em]">Вход в кабинет</h1>
+        <h1 className="font-serif text-[1.75rem] leading-[1.15] font-bold tracking-[-0.01em]">Вход в кабинет</h1>
         <LoginForm />
         <div className="border-border mt-8 border-t pt-4">
           <Callout tone="info" lead="Пароль один на все аккаунты.">

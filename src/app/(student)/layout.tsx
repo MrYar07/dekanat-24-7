@@ -3,6 +3,7 @@ import { Bell } from "lucide-react";
 import { Cover, CoverBar } from "@/components/cover";
 import { LiveUpdates } from "@/components/live-updates";
 import { StudentNav } from "@/components/nav";
+import { A11yToggle } from "@/components/a11y";
 import { ThemeToggle } from "@/components/theme";
 import { requireRole } from "@/lib/auth/dal";
 import { getUnreadCount } from "@/lib/data/learning";
@@ -24,6 +25,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
         lines={[`${me.group}, ${me.course} курс`, `зачётка ${me.recordBookNumber}`]}
       />
       <CoverBar home="/">
+        <A11yToggle tone="cover" />
         <ThemeToggle tone="cover" />
         <Link
           href="/notifications"
@@ -34,7 +36,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
           {unread > 0 && (
             <span
               aria-hidden="true"
-              className="bg-cover-ink text-cover absolute top-0.5 right-0.5 grid min-w-[18px] place-items-center rounded-full px-1 text-[11px] leading-[18px] font-bold tabular-nums"
+              className="bg-cover-ink text-cover absolute top-0.5 right-0.5 grid min-w-[1.125rem] place-items-center rounded-full px-1 text-[0.6875rem] leading-[1.125rem] font-bold tabular-nums"
             >
               {unread > 9 ? "9+" : unread}
             </span>

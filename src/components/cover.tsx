@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { logout } from "@/app/login/actions";
 import { CoverNav } from "@/components/cover-nav";
 import { Logo } from "@/components/logo";
+import { A11yToggle } from "@/components/a11y";
 import { ThemeToggle } from "@/components/theme";
 
 /**
@@ -54,7 +55,10 @@ export function Cover({
         <CoverNav kind={kind} unread={unread} />
 
         <div className="mt-auto mr-5 flex items-center justify-between pt-6">
-          <ThemeToggle tone="cover" className="-ml-2" />
+          <div className="-ml-2 flex items-center">
+            <ThemeToggle tone="cover" />
+            <A11yToggle tone="cover" />
+          </div>
           <form action={logout}>
             <button
               type="submit"

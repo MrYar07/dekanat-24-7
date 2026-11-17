@@ -49,7 +49,7 @@ function Part({ name, weight, share, detail }: { name: string; weight: number; s
           {name} <span className="text-muted font-normal">· {pct(weight)}</span>
         </p>
         <p className="shrink-0 tabular-nums">
-          <b className="font-serif text-[17px]">{one.format(share.points)}</b>
+          <b className="font-serif text-[1.0625rem]">{one.format(share.points)}</b>
           <span className="text-muted text-xs"> из {whole.format(weight * 100)}</span>
         </p>
       </div>
@@ -155,7 +155,7 @@ export default async function RatingBreakdownPage() {
           <span className="text-muted font-serif text-xl" aria-label="равно">
             =
           </span>
-          <dd className="text-right font-serif text-[40px] leading-none font-bold tabular-nums">{one.format(r.rating)}</dd>
+          <dd className="text-right font-serif text-[2.5rem] leading-none font-bold tabular-nums">{one.format(r.rating)}</dd>
           <dt className="text-muted text-sm">рейтинг триместра{r.forecast ? ", прогноз" : ""}</dt>
         </dl>
         {r.forecast && (
@@ -223,7 +223,7 @@ export default async function RatingBreakdownPage() {
               <div className="flex items-baseline justify-between gap-3 text-sm">
                 <span className="min-w-0 truncate">{c.discipline}</span>
                 <span className="shrink-0 tabular-nums">
-                  <b className="font-serif text-[17px]">{one.format(b.score)}</b>
+                  <b className="font-serif text-[1.0625rem]">{one.format(b.score)}</b>
                   <span className="text-muted ml-1.5 text-xs">{signed(b.score - r.base)} к среднему</span>
                 </span>
               </div>

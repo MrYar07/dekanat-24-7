@@ -16,7 +16,7 @@ export default async function VerifyFormPage({ searchParams }: { searchParams: P
     <main className="mx-auto w-full max-w-md px-4 py-10">
       <Logo withCaption className="mb-8" />
       <p className="text-muted mb-1 font-serif text-sm italic">проверка подлинности</p>
-      <h1 className="font-serif text-[28px] leading-tight font-bold">Проверить справку</h1>
+      <h1 className="font-serif text-[1.75rem] leading-tight font-bold">Проверить справку</h1>
       <p className="text-muted mt-2 text-sm">
         Код проверки напечатан внизу справки, рядом с QR-кодом. Вход в кабинет не нужен.
       </p>
