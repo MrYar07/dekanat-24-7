@@ -9,6 +9,9 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   reporter: "list",
+  // Dev-сервер собирает страницу при первом заходе после правок кода: это бывает дольше стандартных 5 с,
+  // и тогда первая же проверка падает, хотя страница рабочая (так однажды упал сценарий 7 путеводителя).
+  expect: { timeout: 10_000 },
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",
     channel: "chrome",

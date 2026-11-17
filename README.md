@@ -36,7 +36,8 @@ npm run dev
 | Шрифты Golos Text и PT Serif (через Fontsource) | SIL Open Font License 1.1 |
 | `pdf-lib`, `@pdf-lib/fontkit` (PDF справок), `qrcode` (QR-код проверки справки и студенческого) | MIT |
 | embedded-postgres (только для разработки), Vitest | MIT |
-| Playwright (только для тестов) | Apache-2.0 |
+| Playwright (тесты и сборка PDF «Как создавался проект») | Apache-2.0 |
+| `marked` (только для `npm run report`: Markdown журнала → HTML для PDF) | MIT |
 | PostgreSQL (образ в проде) | PostgreSQL License |
 | Caddy (HTTPS-прокси в проде) | Apache-2.0 |
 
