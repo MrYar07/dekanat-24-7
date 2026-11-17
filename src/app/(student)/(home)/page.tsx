@@ -249,7 +249,10 @@ export default async function TodayPage() {
               {t.announcements.map((a) => (
                 <Callout key={a.id} tone="announcement" lead={sentence(a.title)}>
                   {a.body}
-                  <span className="text-muted mt-1 block text-xs">{relativeDay(mskNow(a.publishedAt).date, today)}</span>
+                  <span className="text-muted mt-1 block text-xs">
+                    {relativeDay(mskNow(a.publishedAt).date, today)}
+                    {a.editedAt && " · изменено"}
+                  </span>
                 </Callout>
               ))}
             </div>

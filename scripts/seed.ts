@@ -656,12 +656,13 @@ async function main() {
     // Объявления и уведомления
 
     const week11 = addDays(termStart, 70);
-    await tx.insert(s.announcements).values([
+    // Порядок важен: уведомления ниже ссылаются на объявления, чтобы правка и снятие в деканате доходили до них.
+    const [srezAnn, electiveAnn, careerAnn, munAnn] = await tx.insert(s.announcements).values([
       { title: `Третий срез — ${formatDay(week11)} – ${formatDay(addDays(week11, 4))}`, body: "По всем дисциплинам, на занятиях по расписанию. Если пропускаешь по уважительной причине — договорись с преподавателем о дате заранее.", publishedAt: ago(30) },
       { title: `Запись на курсы по выбору — до ${formatDay(addDays(today, 10))}`, body: "Выбор на следующий триместр: два курса из списка факультета. Записаться можно в разделе «Профиль».", publishedAt: ago(72) },
       { title: "Карьерная неделя: стажировки в банках и консалтинге", body: "Встречи с работодателями каждый день в 16:40, ауд. 101. Регистрация не нужна.", groupId: ge2.id, publishedAt: ago(48) },
       { title: "Модельная ООН: отбор в делегацию", body: "Эссе на английском до конца месяца. Подробности у куратора группы.", groupId: mp3.id, publishedAt: ago(40) },
-    ]);
+    ]).returning({ id: s.announcements.id });
 
     const notify = (userId: string, kind: "score" | "request" | "change" | "announcement", title: string, body: string, href: string, hoursAgo: number, read = false) => ({
       userId, kind, title, body, href, createdAt: ago(hoursAgo), readAt: read ? ago(hoursAgo - 1) : null,
@@ -670,14 +671,14 @@ async function main() {
       notify(student1.id, "change", "Перенос: Эконометрика", `${formatDay(econometricsDate)} → ${formatDay(addDays(econometricsDate, 2))}, 13:00, ауд. 305`, "/schedule", 5),
       notify(student1.id, "score", "Новый балл: Макроэкономика", "Срез 2 — 92", "/grades", 24),
       notify(student1.id, "request", "Справка об обучении готова", "Можно скачать PDF с QR-кодом", `/requests/${study1.id}`, 26, true),
-      notify(student1.id, "announcement", "Третий срез через две недели", "Даты в объявлениях", "/", 30, true),
+      { ...notify(student1.id, "announcement", "Третий срез через две недели", "Даты в объявлениях", "/", 30, true), announcementId: srezAnn.id },
       notify(student1.id, "request", "Заявление на перезачёт в работе", "Передано на кафедру количественных методов", `/requests/${recredit1.id}`, 28, true),
-      notify(student1.id, "announcement", "Карьерная неделя: стажировки в банках и консалтинге", "Каждый день в 16:40, ауд. 101", "/", 48, true),
-      notify(student1.id, "announcement", "Запись на курсы по выбору", `До ${formatDay(addDays(today, 10))}, в разделе «Профиль»`, "/", 72, true),
+      { ...notify(student1.id, "announcement", "Карьерная неделя: стажировки в банках и консалтинге", "Каждый день в 16:40, ауд. 101", "/", 48, true), announcementId: careerAnn.id },
+      { ...notify(student1.id, "announcement", "Запись на курсы по выбору", `До ${formatDay(addDays(today, 10))}, в разделе «Профиль»`, "/", 72, true), announcementId: electiveAnn.id },
       notify(student2.id, "change", "Отмена: Региональные конфликты", `${formatDay(conflictsDate)}, материалы в почте группы`, "/schedule", 3),
       notify(student2.id, "score", "Новый балл: Английский язык", "Срез 2 — 70", "/grades", 24),
       notify(student2.id, "request", "Заявка принята: справка о стипендии", "Срок — до 2 рабочих дней", `/requests/${scholarship2.id}`, 4, true),
-      notify(student2.id, "announcement", "Модельная ООН: отбор в делегацию", "Эссе на английском до конца месяца", "/", 40, true),
+      { ...notify(student2.id, "announcement", "Модельная ООН: отбор в делегацию", "Эссе на английском до конца месяца", "/", 40, true), announcementId: munAnn.id },
       notify(student2.id, "request", "Справка об обучении готова", "Можно скачать PDF с QR-кодом", `/requests/${study2.id}`, 24 * 12, true),
     ]);
 

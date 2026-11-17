@@ -4,25 +4,18 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/states";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { BODY_MAX, getAnnouncementBoard, TITLE_MAX } from "@/lib/data/staff/dean-announcements";
-import { publishAnnouncementAction } from "../actions";
+import { editAnnouncementAction, publishAnnouncementAction, withdrawAnnouncementAction } from "../actions";
 import { AnnouncementForm } from "./announcement-form";
+import { PublishedItem } from "./published-item";
 
 export const metadata: Metadata = { title: "Объявления" };
-
-const when = new Intl.DateTimeFormat("ru-RU", {
-  day: "numeric",
-  month: "long",
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: "Europe/Moscow",
-});
 
 export default async function AnnouncementsPage() {
   const { items, groups } = await getAnnouncementBoard();
 
   return (
     <>
-      <PageTitle hint="Объявление появится у студентов на главной, и каждому придёт уведомление.">
+      <PageTitle hint="Объявление появится у студентов на главной, и каждому придёт уведомление. Опечатку можно исправить, ошибочное объявление — снять.">
         Объявления
       </PageTitle>
 
@@ -42,13 +35,14 @@ export default async function AnnouncementsPage() {
           ) : (
             <ul className="space-y-4">
               {items.map((a) => (
-                <li key={a.id} className="border-border border-b pb-4 last:border-b-0">
-                  <p className="font-semibold">{a.title}</p>
-                  <p className="text-muted mt-0.5 text-xs">
-                    {when.format(a.publishedAt)} · {a.group ? `группа ${a.group}` : "всем студентам"}
-                  </p>
-                  <p className="mt-1.5 text-sm whitespace-pre-line">{a.body}</p>
-                </li>
+                <PublishedItem
+                  key={a.id}
+                  item={a}
+                  edit={editAnnouncementAction.bind(null, a.id)}
+                  withdraw={withdrawAnnouncementAction.bind(null, a.id)}
+                  titleMax={TITLE_MAX}
+                  bodyMax={BODY_MAX}
+                />
               ))}
             </ul>
           )}

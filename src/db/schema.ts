@@ -392,6 +392,10 @@ export const announcements = pgTable("announcements", {
   /** null — для всех; иначе только для группы. */
   groupId: uuid("group_id").references(() => groups.id, { onDelete: "cascade" }),
   publishedAt: timestamp("published_at", { withTimezone: true }).notNull().defaultNow(),
+  /** Деканат поправил текст после публикации: студенты видят пометку «изменено». */
+  editedAt: timestamp("edited_at", { withTimezone: true }),
+  /** Снято деканатом: студенты его больше не видят, уведомления о нём удалены. */
+  withdrawnAt: timestamp("withdrawn_at", { withTimezone: true }),
 });
 
 export const notificationKindEnum = pgEnum("notification_kind", ["score", "request", "change", "announcement"]);
@@ -407,6 +411,8 @@ export const notifications = pgTable(
     title: text("title").notNull(),
     body: text("body"),
     href: text("href"),
+    /** Уведомление об объявлении: при правке объявления меняется вместе с ним, при снятии удаляется. */
+    announcementId: uuid("announcement_id").references(() => announcements.id, { onDelete: "cascade" }),
     readAt: timestamp("read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },

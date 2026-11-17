@@ -266,9 +266,16 @@ export async function getToday(at: Date = new Date()) {
       .orderBy(desc(requests.updatedAt))
       .limit(3),
     db
-      .select({ id: announcements.id, title: announcements.title, body: announcements.body, publishedAt: announcements.publishedAt })
+      .select({
+        id: announcements.id,
+        title: announcements.title,
+        body: announcements.body,
+        publishedAt: announcements.publishedAt,
+        editedAt: announcements.editedAt,
+      })
       .from(announcements)
-      .where(or(isNull(announcements.groupId), eq(announcements.groupId, me.groupId)))
+      // Снятые деканатом объявления не показываются.
+      .where(and(isNull(announcements.withdrawnAt), or(isNull(announcements.groupId), eq(announcements.groupId, me.groupId))))
       .orderBy(desc(announcements.publishedAt))
       .limit(2),
     getUnreadCount(),

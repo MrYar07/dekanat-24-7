@@ -3,7 +3,12 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { changeRequestStatus } from "@/lib/data/staff/dean";
-import { publishAnnouncement, type AnnouncementInput } from "@/lib/data/staff/dean-announcements";
+import {
+  editAnnouncement,
+  publishAnnouncement,
+  withdrawAnnouncement,
+  type AnnouncementInput,
+} from "@/lib/data/staff/dean-announcements";
 import { changeLesson, restoreLesson } from "@/lib/data/staff/dean-schedule";
 import { saveMyAttendance, saveMyCheckpointScores, type AttendanceEntry, type AttendanceMark, type ScoreEntry } from "@/lib/data/staff/teacher";
 
@@ -57,6 +62,34 @@ export async function publishAnnouncementAction(_prev: AnnouncementFormState, fo
   if (!result.ok) return { error: result.error, fields: result.fields, values };
   revalidatePath("/staff/announcements");
   return { recipients: result.recipients, at: Date.now() };
+}
+
+export type AnnouncementEditState = {
+  error?: string;
+  fields?: Partial<Record<"title" | "body", string>>;
+  values?: { title: string; body: string };
+  at?: number;
+};
+
+/** Деканат правит опубликованное объявление: текст меняется и у студентов, и в их уведомлениях. */
+export async function editAnnouncementAction(
+  announcementId: string,
+  _prev: AnnouncementEditState,
+  form: FormData,
+): Promise<AnnouncementEditState> {
+  const values = { title: String(form.get("title") ?? ""), body: String(form.get("body") ?? "") };
+  const result = await editAnnouncement(announcementId, values);
+  if (!result.ok) return { error: result.error, fields: result.fields, values };
+  revalidatePath("/staff/announcements");
+  return { at: Date.now() };
+}
+
+/** Деканат снимает объявление. Возвращает, сколько уведомлений удалено у студентов. */
+export async function withdrawAnnouncementAction(announcementId: string): Promise<{ error?: string; removed?: number }> {
+  const result = await withdrawAnnouncement(announcementId);
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/staff/announcements");
+  return { removed: result.removed };
 }
 
 export type LessonFormState = { error?: string; recipients?: number; at?: number };

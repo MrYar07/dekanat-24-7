@@ -25,7 +25,7 @@ test.describe("деканат: объявления", () => {
       await page.getByLabel("Заголовок").fill(title);
       await page.getByLabel("Текст").fill("Сбор в ауд. 101 в 16:40.");
       await page.getByRole("button", { name: "Опубликовать" }).click();
-      await expect(page.getByRole("status")).toContainText("Уведомление получили 8 студентов");
+      await expect(page.getByRole("region", { name: "Новое объявление" }).getByRole("status")).toContainText("Уведомление получили 8 студентов");
       await expect(page.getByLabel("Опубликованные").getByText(title)).toBeVisible();
       // После публикации форма пустая.
       await expect(page.getByLabel("Заголовок")).toHaveValue("");
@@ -46,6 +46,54 @@ test.describe("деканат: объявления", () => {
     } finally {
       await query("delete from notifications where title = $1", [title]);
       await query("delete from announcements where title = $1", [title]);
+    }
+  });
+
+  test("опечатку можно исправить, ошибочное объявление — снять; студент видит и то и другое", async ({ page, browser }) => {
+    const stamp = Date.now();
+    const title = `Собрание группы ${stamp}`;
+    const fixed = `Собрание группы перенесено ${stamp}`;
+    try {
+      await login(page, "dean");
+      await page.goto("/staff/announcements");
+      await page.getByLabel("Кому").selectOption({ label: "Группа МП-23-2" });
+      await page.getByLabel("Заголовок").fill(title);
+      await page.getByLabel("Текст").fill("В четверг в ауд. 101.");
+      await page.getByRole("button", { name: "Опубликовать" }).click();
+      await expect(page.getByRole("region", { name: "Новое объявление" }).getByRole("status")).toContainText("Уведомление получили 8 студентов");
+
+      // Исправить: новый текст и у студента на главной, и в уже пришедшем уведомлении.
+      const item = page.getByLabel("Опубликованные").getByRole("listitem", { name: title });
+      await item.getByRole("button", { name: "Исправить" }).click();
+      await item.getByLabel("Заголовок").fill(fixed);
+      await item.getByLabel("Текст").fill("В пятницу в ауд. 205.");
+      await item.getByRole("button", { name: "Сохранить" }).click();
+      const fixedItem = page.getByLabel("Опубликованные").getByRole("listitem", { name: fixed });
+      await expect(fixedItem.getByRole("status")).toContainText("Исправлено");
+      await expect(fixedItem).toContainText("изменено");
+
+      const student = await (await browser.newContext()).newPage();
+      await login(student, "student2");
+      await expect(student.getByText(fixed)).toBeVisible();
+      await expect(student.getByText("В пятницу в ауд. 205.")).toBeVisible();
+      await student.goto("/notifications?kind=announcement");
+      await expect(student.getByRole("link", { name: new RegExp(fixed) })).toBeVisible();
+      await expect(student.getByText(title, { exact: true })).toHaveCount(0);
+
+      // Снять: в два шага, у студента пропадает и объявление, и уведомление.
+      await fixedItem.getByRole("button", { name: "Снять" }).click();
+      await fixedItem.getByRole("button", { name: "Да, снять" }).click();
+      await expect(fixedItem.getByRole("status")).toContainText("Удалено 8 уведомлений");
+      await expect(fixedItem).toContainText("снято");
+      await expect(fixedItem.getByRole("button", { name: "Исправить" })).toHaveCount(0);
+
+      await student.goto("/notifications?kind=announcement");
+      await expect(student.getByText(fixed)).toHaveCount(0);
+      await student.goto("/");
+      await expect(student.getByText(fixed)).toHaveCount(0);
+      await student.context().close();
+    } finally {
+      await query("delete from announcements where title = any($1)", [[title, fixed]]);
     }
   });
 });
