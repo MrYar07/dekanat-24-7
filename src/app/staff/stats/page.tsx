@@ -6,10 +6,12 @@ import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { getDeanStats, VISITS_SAVED_INSTANT, VISITS_SAVED_REQUEST } from "@/lib/data/staff/dean-stats";
+import { MIN_RESPONSES } from "@/lib/feedback";
 
 export const metadata: Metadata = { title: "Сводка" };
 
 const whole = new Intl.NumberFormat("ru-RU");
+const one = new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 function duration(hours: number) {
   if (hours < 1) return "меньше часа";
@@ -74,6 +76,42 @@ export default async function DeanStatsPage() {
               items={s.byType.map((t) => ({ label: t.name, value: t.count, note: t.instant ? "выдаётся сразу" : undefined }))}
             />
           )}
+
+          <section aria-labelledby="feedback-title" className="mt-8">
+            <SectionTitle>
+              <span id="feedback-title">Оценка преподавания</span>
+            </SectionTitle>
+            {s.feedback.responses === 0 ? (
+              <p className="text-muted text-sm">Студенты ещё не оценивали курсы этого триместра.</p>
+            ) : (
+              <>
+                {s.feedback.courses.length > 0 && (
+                  <ul className="border-border bg-surface divide-border divide-y overflow-hidden rounded-xl border">
+                    {s.feedback.courses.map((c) => (
+                      <li key={`${c.discipline}-${c.group}`} className="flex items-center gap-3 px-4 py-3">
+                        <span className="min-w-0 flex-1">
+                          <span className="block font-medium">{c.discipline}</span>
+                          <span className="text-muted block text-sm">
+                            {c.group} · {c.teacher} · {whole.format(c.responses)} отв.
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-right">
+                          <span className="block text-xl font-bold tabular-nums">{one.format(c.average)}</span>
+                          <span className="text-muted block text-xs">из 5</span>
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <p className="text-muted mt-2 text-sm">
+                  Среднее трёх вопросов: понятно ли объясняет, полезны ли занятия, справедливо ли оценивает. Комментарии видит только
+                  преподаватель.
+                  {s.feedback.hidden > 0 &&
+                    ` Ещё курсов с ответами: ${s.feedback.hidden} — у них меньше ${MIN_RESPONSES} ответов, и сводка скрыта.`}
+                </p>
+              </>
+            )}
+          </section>
         </section>
 
         <div className="space-y-8">

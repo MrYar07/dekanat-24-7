@@ -67,6 +67,15 @@ test.describe("оценка преподавания", () => {
     await expect(page.getByText("Спасибо за быстрые ответы на почту.")).toHaveCount(0);
   });
 
+  test("деканат видит среднюю по курсам с 5+ ответами, без комментариев", async ({ page }) => {
+    await login(page, "dean");
+    await page.goto("/staff/stats");
+    const section = page.getByRole("region", { name: "Оценка преподавания" });
+    await expect(section.getByRole("listitem").filter({ hasText: "ГЭ-24-1" })).toContainText("Английский язык");
+    await expect(section).toContainText("меньше 5 ответов");
+    await expect(section.getByText("Много практики на настоящих текстах")).toHaveCount(0);
+  });
+
   test("чужой курс — 404 и для студента, и для преподавателя", async ({ page, browser }) => {
     const ge = await courseOf("ГЭ-24-1");
     const [foreign] = await query<{ id: string }>(

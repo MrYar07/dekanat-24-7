@@ -1,8 +1,22 @@
 import "server-only";
-import { and, count, desc, eq, gte, inArray, sql, sum } from "drizzle-orm";
+import { and, asc, avg, count, desc, eq, gte, inArray, sql, sum } from "drizzle-orm";
 import { db } from "@/db";
-import { achievements, checkpointScores, documentTypes, issuedDocuments, requestEvents, requests } from "@/db/schema";
+import {
+  achievements,
+  checkpointScores,
+  courseFeedback,
+  courses,
+  disciplines,
+  documentTypes,
+  groups,
+  issuedDocuments,
+  requestEvents,
+  requests,
+  terms,
+  users,
+} from "@/db/schema";
 import { requireRole } from "@/lib/auth/dal";
+import { MIN_RESPONSES } from "@/lib/feedback";
 
 // Сводка для деканата: что кабинет изменил по сравнению с бумажным порядком.
 // Только счётчики по всем студентам, без персональных данных. Роль проверяет сама функция.
@@ -16,7 +30,7 @@ export async function getDeanStats(at: Date = new Date()) {
   await requireRole("dean_office");
   const weekAgo = new Date(at.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const [[issued], byType, [handled], [speed], [scores], achievementRows] = await Promise.all([
+  const [[issued], byType, [handled], [speed], [scores], achievementRows, feedbackRows] = await Promise.all([
     db.select({ n: count() }).from(issuedDocuments),
     db
       .select({ name: documentTypes.name, instant: documentTypes.instant, n: count() })
@@ -44,6 +58,27 @@ export async function getDeanStats(at: Date = new Date()) {
       .select({ status: achievements.status, n: count(), points: sum(achievements.points).mapWith(Number) })
       .from(achievements)
       .groupBy(achievements.status),
+    // Оценка преподавания: только средние по курсу. Комментарии деканат не видит — они для преподавателя.
+    db
+      .select({
+        discipline: disciplines.name,
+        group: groups.name,
+        teacherLast: users.lastName,
+        teacherFirst: users.firstName,
+        teacherMiddle: users.middleName,
+        n: count(),
+        clarity: avg(courseFeedback.clarity).mapWith(Number),
+        usefulness: avg(courseFeedback.usefulness).mapWith(Number),
+        fairness: avg(courseFeedback.fairness).mapWith(Number),
+      })
+      .from(courseFeedback)
+      .innerJoin(courses, eq(courses.id, courseFeedback.courseId))
+      .innerJoin(terms, and(eq(terms.id, courses.termId), eq(terms.isCurrent, true)))
+      .innerJoin(disciplines, eq(disciplines.id, courses.disciplineId))
+      .innerJoin(groups, eq(groups.id, courses.groupId))
+      .innerJoin(users, eq(users.id, courses.teacherId))
+      .groupBy(disciplines.name, groups.name, users.lastName, users.firstName, users.middleName)
+      .orderBy(asc(disciplines.name), asc(groups.name)),
   ]);
 
   const instant = issued?.n ?? 0;
@@ -63,6 +98,20 @@ export async function getDeanStats(at: Date = new Date()) {
       approved: achievement("approved")?.n ?? 0,
       rejected: achievement("rejected")?.n ?? 0,
       points: achievement("approved")?.points ?? 0,
+    },
+    // Как у преподавателя: курс с числом ответов ниже порога показывается только счётчиком.
+    feedback: {
+      courses: feedbackRows
+        .filter((r) => r.n >= MIN_RESPONSES)
+        .map((r) => ({
+          discipline: r.discipline,
+          group: r.group,
+          teacher: `${r.teacherLast} ${r.teacherFirst[0]}.${r.teacherMiddle ? ` ${r.teacherMiddle[0]}.` : ""}`,
+          responses: r.n,
+          average: Math.round(((r.clarity + r.usefulness + r.fairness) / 3) * 10) / 10,
+        })),
+      hidden: feedbackRows.filter((r) => r.n < MIN_RESPONSES).length,
+      responses: feedbackRows.reduce((a, r) => a + r.n, 0),
     },
   };
 }
