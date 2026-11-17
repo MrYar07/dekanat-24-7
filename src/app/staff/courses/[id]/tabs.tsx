@@ -1,10 +1,11 @@
 import Link from "next/link";
 
-/** Разделы курса: баллы за срезы, посещаемость и анонимные отзывы студентов. */
-export function CourseTabs({ courseId, active }: { courseId: string; active: "scores" | "attendance" | "feedback" }) {
+/** Разделы курса: баллы за срезы, посещаемость, активность с бонусом и анонимные отзывы студентов. */
+export function CourseTabs({ courseId, active }: { courseId: string; active: "scores" | "attendance" | "results" | "feedback" }) {
   const tabs = [
     { key: "scores", href: `/staff/courses/${courseId}`, label: "Баллы за срезы", short: "Баллы" },
-    { key: "attendance", href: `/staff/courses/${courseId}/attendance`, label: "Посещаемость", short: null },
+    { key: "attendance", href: `/staff/courses/${courseId}/attendance`, label: "Посещаемость", short: "Пары" },
+    { key: "results", href: `/staff/courses/${courseId}/results`, label: "Активность и бонус", short: "Итоги" },
     { key: "feedback", href: `/staff/courses/${courseId}/feedback`, label: "Отзывы", short: null },
   ] as const;
   return (

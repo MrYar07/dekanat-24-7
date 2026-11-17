@@ -10,7 +10,15 @@ import {
   type AnnouncementInput,
 } from "@/lib/data/staff/dean-announcements";
 import { changeLesson, restoreLesson } from "@/lib/data/staff/dean-schedule";
-import { saveMyAttendance, saveMyCheckpointScores, type AttendanceEntry, type AttendanceMark, type ScoreEntry } from "@/lib/data/staff/teacher";
+import {
+  saveMyAttendance,
+  saveMyCheckpointScores,
+  saveMyCourseResults,
+  type AttendanceEntry,
+  type AttendanceMark,
+  type ResultEntry,
+  type ScoreEntry,
+} from "@/lib/data/staff/teacher";
 
 export type StatusFormState = { error?: string; note?: string; status?: string };
 
@@ -138,4 +146,23 @@ export async function saveAttendanceAction(
   if (!result.ok) return { error: result.error };
   revalidatePath("/staff", "layout");
   return { saved: result.saved, cleared: result.cleared, absent: result.absent, at: Date.now() };
+}
+
+export type ResultsFormState = { error?: string; saved?: number; bonuses?: number; at?: number };
+
+/** Преподаватель выставляет активность и бонус. Пустая активность — «ещё не оценена». */
+export async function saveResultsAction(courseId: string, _prev: ResultsFormState, form: FormData): Promise<ResultsFormState> {
+  const entries: ResultEntry[] = [];
+  for (const [key, raw] of form.entries()) {
+    if (!key.startsWith("activity:")) continue;
+    const studentId = key.slice("activity:".length);
+    const text = String(raw).trim();
+    const activity = text === "" ? null : Number(text);
+    if (activity !== null && !Number.isInteger(activity)) return { error: "Активность — целое число от 0 до 100" };
+    entries.push({ studentId, activity, bonus: Number(form.get(`bonus:${studentId}`) ?? 0) });
+  }
+  const result = await saveMyCourseResults(courseId, entries);
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/staff", "layout");
+  return { saved: result.saved, bonuses: result.bonuses, at: Date.now() };
 }

@@ -6,6 +6,7 @@ import {
   checkpointScores,
   checkpoints,
   courseFeedback,
+  courseResults,
   courses,
   disciplines,
   groups,
@@ -17,6 +18,7 @@ import {
   users,
 } from "@/db/schema";
 import { requireRole } from "@/lib/auth/dal";
+import { DEFAULT_SETTINGS } from "@/lib/grading";
 import { summarize } from "@/lib/feedback";
 import { lessonKey, startedLessons, type Change, type Slot } from "@/lib/schedule";
 import { formatDay, mskNow } from "@/lib/time";
@@ -496,4 +498,106 @@ export async function getMyCourseFeedback(courseId: string) {
     db.select({ n: count() }).from(studentProfiles).where(eq(studentProfiles.groupId, course.groupId)),
   ]);
   return { course, students: group?.n ?? 0, summary: summarize(rows) };
+}
+
+/**
+ * Итоги триместра по курсу: активность на занятиях (0–100) и бонус за особые успехи (0–5).
+ * Рядом — среднее по срезам, чтобы было видно, к чему добавляется бонус.
+ */
+export async function getMyCourseResults(courseId: string) {
+  const user = await requireRole("teacher");
+  const course = await ownCourse(courseId, user.id);
+  if (!course) return null;
+  const [students, results, scores] = await Promise.all([
+    db
+      .select({ id: users.id, lastName: users.lastName, firstName: users.firstName, middleName: users.middleName })
+      .from(studentProfiles)
+      .innerJoin(users, eq(users.id, studentProfiles.userId))
+      .where(eq(studentProfiles.groupId, course.groupId))
+      .orderBy(asc(users.lastName), asc(users.firstName)),
+    db
+      .select({ studentId: courseResults.studentId, activity: courseResults.activity, bonus: courseResults.bonus })
+      .from(courseResults)
+      .where(eq(courseResults.courseId, course.id)),
+    db
+      .select({ studentId: checkpointScores.studentId, score: checkpointScores.score })
+      .from(checkpointScores)
+      .innerJoin(checkpoints, eq(checkpoints.id, checkpointScores.checkpointId))
+      .where(eq(checkpoints.courseId, course.id)),
+  ]);
+  return {
+    course,
+    bonusMax: DEFAULT_SETTINGS.teacherBonusMax,
+    students: students.map((st) => {
+      const r = results.find((x) => x.studentId === st.id);
+      const own = scores.filter((x) => x.studentId === st.id && x.score !== null).map((x) => x.score!);
+      return {
+        id: st.id,
+        name: [st.lastName, st.firstName, st.middleName].filter(Boolean).join(" "),
+        activity: r?.activity ?? null,
+        bonus: r?.bonus ?? 0,
+        checkpointsMean: own.length ? Math.round((own.reduce((a, b) => a + b, 0) / own.length) * 10) / 10 : null,
+      };
+    }),
+  };
+}
+
+export type ResultEntry = { studentId: string; activity: number | null; bonus: number };
+export type SaveResultsResult = { ok: true; saved: number; bonuses: number } | { ok: false; error: string };
+
+/**
+ * Сохранить активность и бонус. Только студентам группы этого курса: чужие id отбрасываются.
+ * О новом или увеличенном бонусе студент получает уведомление — это приятная новость.
+ */
+export async function saveMyCourseResults(courseId: string, entries: ResultEntry[]): Promise<SaveResultsResult> {
+  const user = await requireRole("teacher");
+  const course = await ownCourse(courseId, user.id);
+  if (!course) return { ok: false, error: "Курс не найден" };
+  const max = DEFAULT_SETTINGS.teacherBonusMax;
+  for (const e of entries) {
+    if (e.activity !== null && (!Number.isInteger(e.activity) || e.activity < 0 || e.activity > 100)) {
+      return { ok: false, error: "Активность — целое число от 0 до 100" };
+    }
+    if (!Number.isInteger(e.bonus) || e.bonus < 0 || e.bonus > max) return { ok: false, error: `Бонус — целое число от 0 до ${max}` };
+  }
+
+  return db.transaction(async (tx) => {
+    const group = await tx.select({ id: studentProfiles.userId }).from(studentProfiles).where(eq(studentProfiles.groupId, course.groupId));
+    const ids = new Set(group.map((g) => g.id));
+    const mine = entries.filter((e) => ids.has(e.studentId));
+    if (!mine.length) return { ok: true, saved: 0, bonuses: 0 } as const;
+
+    const before = await tx
+      .select({ studentId: courseResults.studentId, activity: courseResults.activity, bonus: courseResults.bonus })
+      .from(courseResults)
+      .where(and(eq(courseResults.courseId, course.id), inArray(courseResults.studentId, mine.map((e) => e.studentId))));
+    const changed = mine.filter((e) => {
+      const b = before.find((x) => x.studentId === e.studentId);
+      return (b?.activity ?? null) !== e.activity || (b?.bonus ?? 0) !== e.bonus;
+    });
+    if (!changed.length) return { ok: true, saved: 0, bonuses: 0 } as const;
+
+    for (const e of changed) {
+      await tx
+        .insert(courseResults)
+        .values({ courseId: course.id, studentId: e.studentId, activity: e.activity, bonus: e.bonus })
+        .onConflictDoUpdate({
+          target: [courseResults.courseId, courseResults.studentId],
+          set: { activity: e.activity, bonus: e.bonus },
+        });
+    }
+    const raised = changed.filter((e) => e.bonus > (before.find((x) => x.studentId === e.studentId)?.bonus ?? 0));
+    if (raised.length) {
+      await tx.insert(notifications).values(
+        raised.map((e) => ({
+          userId: e.studentId,
+          kind: "score" as const,
+          title: `Бонус за успехи: ${course.discipline}`,
+          body: `+${e.bonus} к работе в триместре от преподавателя`,
+          href: "/grades",
+        })),
+      );
+    }
+    return { ok: true, saved: changed.length, bonuses: raised.length } as const;
+  });
 }
