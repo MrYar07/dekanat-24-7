@@ -12,6 +12,7 @@
 - Как выкатить на сервер: [docs/DEPLOY.md](docs/DEPLOY.md)
 - Как создавалось с ИИ: [docs/process/JOURNAL.md](docs/process/JOURNAL.md)
 - Что проверить руками перед сдачей: [docs/process/CHECKLIST.md](docs/process/CHECKLIST.md)
+- PDF «Как создавался проект» для жюри: `docs/process/kak-sozdavalsya-proekt.pdf`, пересобирается командой `npm run report`
 
 ## Запуск
 
