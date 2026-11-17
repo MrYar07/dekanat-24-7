@@ -430,3 +430,16 @@ export const studentCardTokens = pgTable(
   },
   (t) => [index("student_card_tokens_student_idx").on(t.studentId)],
 );
+
+/**
+ * Ссылка на расписание для календаря (Google, Apple, Яндекс). Одна на студента: календарь
+ * ходит за ней сам, без входа, поэтому токен случайный и его можно сбросить. В ленте только
+ * расписание группы — без оценок и без имени студента.
+ */
+export const calendarFeeds = pgTable("calendar_feeds", {
+  studentId: uuid("student_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

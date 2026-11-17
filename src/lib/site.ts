@@ -24,3 +24,9 @@ export async function verifyUrl(code: string): Promise<string> {
 export async function cardVerifyUrl(token: string): Promise<string> {
   return `${await siteOrigin()}/verify/student/${token}`;
 }
+
+/** Лента расписания для календаря: https — для Google и «скачать», webcal — чтобы телефон сразу предложил подписку. */
+export async function calendarUrls(token: string): Promise<{ https: string; webcal: string }> {
+  const https = `${await siteOrigin()}/calendar/${token}.ics`;
+  return { https, webcal: https.replace(/^https?:\/\//, "webcal://") };
+}

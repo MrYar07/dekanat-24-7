@@ -43,6 +43,13 @@
       "when": 1794859974610,
       "tag": "0005_student_card",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794952552898,
+      "tag": "0006_calendar_feed",
+      "breakpoints": true
     }
   ]
 }

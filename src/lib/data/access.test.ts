@@ -9,7 +9,8 @@ const dir = __dirname;
 // Общие для всех данные, не привязанные к пользователю.
 // verifyDocument — публичная проверка справки по QR-коду, без входа и с минимумом данных.
 // verifyStudentCard — проверка электронного студенческого по одноразовому QR, тоже без входа.
-const PUBLIC = new Set(["verifyDocument", "verifyStudentCard"]);
+// calendarFeed — расписание группы по секретной ссылке: за ним ходит календарь, войти он не может.
+const PUBLIC = new Set(["verifyDocument", "verifyStudentCard", "calendarFeed"]);
 
 const files = readdirSync(dir).filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"));
 const fns = files.flatMap((file) => {

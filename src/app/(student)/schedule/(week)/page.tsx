@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { buttonClass } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { StatusBadge } from "@/components/ui/status";
@@ -69,6 +69,13 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageTitle eyebrow={formatRange(first, last)}>Расписание</PageTitle>
+      <Link
+        href="/schedule/calendar"
+        className="text-brand -mt-2 mb-4 inline-flex items-center gap-1.5 text-sm font-semibold hover:underline"
+      >
+        <CalendarPlus className="size-4" aria-hidden="true" />
+        В календарь на телефоне
+      </Link>
 
       <nav aria-label="Недели триместра" className="mb-6 flex items-center gap-1 whitespace-nowrap">
         <WeekLink week={s.week - 1} disabled={s.week <= 1} label="Предыдущая неделя">

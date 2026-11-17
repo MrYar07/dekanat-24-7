@@ -5,7 +5,7 @@
 // второй срез только что прошёл, третий — через две недели. Демо не устаревает, сколько бы его ни открывали.
 import "dotenv/config";
 import { randomBytes } from "node:crypto";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as s from "../src/db/schema";
@@ -164,8 +164,15 @@ async function main() {
   const studentRatings: string[] = [];
 
   await db.transaction(async (tx) => {
+    // Ссылки на расписание в календаре переживают ночной пересев: иначе подписка жюри
+    // в Google Календаре каждое утро превращалась бы в «не найдено».
+    const keptFeeds = await tx
+      .select({ login: s.users.login, token: s.calendarFeeds.token })
+      .from(s.calendarFeeds)
+      .innerJoin(s.users, eq(s.users.id, s.calendarFeeds.studentId));
+
     await tx.execute(sql`TRUNCATE
-      notifications, announcements, issued_documents, request_events, requests, document_types,
+      calendar_feeds, notifications, announcements, issued_documents, request_events, requests, document_types,
       achievement_files, achievements, achievement_kinds, grading_settings,
       course_results, attendance, checkpoint_scores, checkpoints, lesson_changes, timetable_slots, courses, disciplines, terms,
       login_attempts, sessions, student_profiles, staff_profiles, users, groups, programs, faculties
@@ -234,6 +241,9 @@ async function main() {
       { userId: student1.id, groupId: ge2.id, recordBookNumber: "М-24-0417", isPaid: true },
       { userId: student2.id, groupId: mp3.id, recordBookNumber: "М-23-1182", isPaid: false },
     ]);
+    const feedOwner: Record<string, string> = { student1: student1.id, student2: student2.id };
+    const restored = keptFeeds.filter((f) => feedOwner[f.login]).map((f) => ({ studentId: feedOwner[f.login], token: f.token }));
+    if (restored.length) await tx.insert(s.calendarFeeds).values(restored);
 
     // Одногруппники: нужны журналу преподавателя. Войти под ними нельзя (случайный пароль).
     async function classmates(groupId: string, prefix: string, names: readonly (readonly [string, string, string])[]) {
