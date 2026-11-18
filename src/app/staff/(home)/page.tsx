@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Award, CalendarCheck, ChartNoAxesColumn, ChevronRight, Inbox, NotebookPen, Zap } from "lucide-react";
+import { Award, CalendarCheck, ChartNoAxesColumn, ChevronRight, Inbox, MessageCircleQuestion, NotebookPen, Zap } from "lucide-react";
 import { AchievementStatusBadge } from "@/components/achievement-status";
+import { QuestionStatusBadge } from "@/components/question-status";
 import { RequestStatusBadge } from "@/components/request-status";
 import { FilterChip, FilterChips } from "@/components/ui/filter-chips";
 import { EmptyState } from "@/components/ui/states";
@@ -9,6 +10,7 @@ import { PageTitle } from "@/components/ui/typography";
 import { requireRole } from "@/lib/auth/dal";
 import { getRequestQueue, isQueueFilter, QUEUE_FILTERS, type QueueFilter } from "@/lib/data/staff/dean";
 import { getAchievementQueue } from "@/lib/data/staff/dean-achievements";
+import { getQuestionQueue } from "@/lib/data/staff/dean-questions";
 import { getDeanStats } from "@/lib/data/staff/dean-stats";
 import { getMyCourses } from "@/lib/data/staff/teacher";
 import { formatShortDay } from "@/lib/time";
@@ -18,19 +20,25 @@ export const metadata: Metadata = { title: "Кабинет сотрудника"
 const day = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", timeZone: "Europe/Moscow" });
 
 const EMPTY: Record<QueueFilter, string> = {
-  active: "Новых заявок нет. Когда студент подаст заявку, она появится здесь.",
+  active: "Новых заявок и вопросов нет. Когда студент подаст заявку или задаст вопрос, они появятся здесь.",
   ready: "Нет документов, которые ждут студента.",
   done: "Закрытых заявок пока нет.",
   all: "Заявок пока нет.",
 };
 
 async function DeanQueue({ filter }: { filter: QueueFilter }) {
-  // Одна очередь на всё, что ждёт решения деканата: заявки на документы и достижения для рейтинга.
-  const [requests, achievements, stats] = await Promise.all([getRequestQueue(filter), getAchievementQueue(filter), getDeanStats()]);
-  const waiting = requests.counts.active + achievements.counts.active;
+  // Одна очередь на всё, что ждёт деканата: заявки на документы, достижения для рейтинга и вопросы студентов.
+  const [requests, achievements, questions, stats] = await Promise.all([
+    getRequestQueue(filter),
+    getAchievementQueue(filter),
+    getQuestionQueue(filter),
+    getDeanStats(),
+  ]);
+  const waiting = requests.counts.active + achievements.counts.active + questions.counts.active;
   const items = [
     ...requests.items.map((r) => ({ ...r, source: "request" as const })),
     ...achievements.items.map((a) => ({ ...a, source: "achievement" as const })),
+    ...questions.items.map((q) => ({ ...q, source: "question" as const })),
   ].sort((a, b) =>
     filter === "active" ? a.createdAt.getTime() - b.createdAt.getTime() : b.updatedAt.getTime() - a.updatedAt.getTime(),
   );
@@ -77,7 +85,29 @@ async function DeanQueue({ filter }: { filter: QueueFilter }) {
       ) : (
         <ul className="border-border bg-surface divide-border divide-y overflow-hidden rounded-xl border">
           {items.map((r) =>
-            r.source === "achievement" ? (
+            r.source === "question" ? (
+              <li key={r.id}>
+                <Link href={`/staff/questions/${r.id}`} className="hover:bg-surface-2 flex items-center gap-3 px-4 py-3.5">
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold">{r.preview}</span>
+                    <span className="text-muted mt-0.5 block text-sm">
+                      {r.student} · {r.group}
+                    </span>
+                    <span className="text-muted mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                      <QuestionStatusBadge status={r.status} />
+                      <span className="inline-flex items-center gap-0.5">
+                        <MessageCircleQuestion className="size-3.5" aria-hidden="true" />
+                        вопрос
+                      </span>
+                      <span>
+                        {r.topic} · {day.format(r.createdAt)}
+                      </span>
+                    </span>
+                  </span>
+                  <ChevronRight className="text-muted size-5 shrink-0" aria-hidden="true" />
+                </Link>
+              </li>
+            ) : r.source === "achievement" ? (
               <li key={r.id}>
                 <Link href={`/staff/achievements/${r.id}`} className="hover:bg-surface-2 flex items-center gap-3 px-4 py-3.5">
                   <span className="min-w-0 flex-1">

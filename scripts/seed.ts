@@ -172,7 +172,7 @@ async function main() {
       .innerJoin(s.users, eq(s.users.id, s.calendarFeeds.studentId));
 
     await tx.execute(sql`TRUNCATE
-      course_feedback_votes, course_feedback, calendar_feeds, notifications, announcements, issued_documents, request_events, requests, document_types,
+      questions, course_feedback_votes, course_feedback, calendar_feeds, notifications, announcements, issued_documents, request_events, requests, document_types,
       achievement_files, achievements, achievement_kinds, grading_settings,
       course_results, attendance, checkpoint_scores, checkpoints, lesson_changes, timetable_slots, courses, disciplines, terms,
       login_attempts, sessions, student_profiles, staff_profiles, users, groups, programs, faculties
@@ -718,6 +718,88 @@ async function main() {
       { ...notify(student2.id, "announcement", "Модельная ООН: отбор в делегацию", "Эссе на английском до конца месяца", "/", 40, true), announcementId: munAnn.id },
       notify(student2.id, "request", "Справка об обучении готова", "Можно скачать PDF с QR-кодом", `/requests/${study2.id}`, 24 * 12, true),
     ]);
+
+    // Вопросы в деканат. У student1 один вопрос с ответом и ни одного без ответа: жюри может задать свой.
+    // У student2 вопрос ждёт ответа — его видно в очереди деканата. Одногруппники дают очереди историю.
+    // Ответ — в рабочие часы деканата (будни 10–17) n-го рабочего дня назад; вопрос задан за askedBefore часов до ответа.
+    // Студенты пишут когда угодно, поэтому время вопросов без ответа — просто «сколько часов назад».
+    const workdayAt = (back: number, time: string) => {
+      let d = today;
+      for (let left = back; left > 0; ) {
+        d = addDays(d, -1);
+        if (weekdayOf(d) <= 5) left--;
+      }
+      return mskInstant(d, time);
+    };
+    type SeedQuestion = { studentId: string; topic: string; text: string } & (
+      | { hoursAgo: number }
+      | { answer: string; answeredAt: Date; askedBefore: number }
+    );
+    const QUESTIONS: SeedQuestion[] = [
+      {
+        studentId: student1.id,
+        topic: "Учёба и оценки",
+        text: "Пропустила второй срез по эконометрике: болела, справка из поликлиники есть. Можно написать срез позже?",
+        answer:
+          "Да, можно. Отдай справку в каб. 214 до пятницы — пропуск отметим как уважительный. Дату, когда написать срез, назначает преподаватель: после отметки напиши ему, обычно это ближайшее занятие.",
+        answeredAt: workdayAt(2, "11:40"),
+        askedBefore: 14,
+      },
+      {
+        studentId: student2.id,
+        topic: "Справки и документы",
+        text: "Для визы просят справку об обучении на английском языке. В кабинете есть только русская — можно заказать английскую?",
+        hoursAgo: 6,
+      },
+      { studentId: geMates[2], topic: "Расписание", text: "В пятницу у нас в одно время стоят английский и семинар по макроэкономике. Какое занятие правильное?", hoursAgo: 3 },
+      { studentId: mpMates[1], topic: "Стипендия и оплата", text: "Стипендию за октябрь так и не получил. Куда обратиться, если в бухгалтерии говорят, что приказа нет?", hoursAgo: 20 },
+      {
+        studentId: geMates[5],
+        topic: "Другое",
+        text: "Потерял студенческий билет. Электронного в кабинете хватит для входа, или нужно делать новый пластиковый?",
+        answer: "Для входа хватит электронного: охрана сканирует QR из раздела «Профиль». Пластиковый выпустим за 5 рабочих дней — напиши заявление в каб. 214.",
+        answeredAt: workdayAt(3, "15:10"),
+        askedBefore: 5,
+      },
+      {
+        studentId: mpMates[3],
+        topic: "Учёба и оценки",
+        text: "Можно ли перезачесть курс по истории, который я сдавал в другом вузе?",
+        answer: "Можно. Закажи в кабинете «Заявление на перезачёт» и приложи академическую справку из прежнего вуза. Решение принимает кафедра в течение 10 рабочих дней.",
+        answeredAt: workdayAt(4, "10:25"),
+        askedBefore: 18,
+      },
+    ];
+    const askedRows = await tx
+      .insert(s.questions)
+      .values(
+        QUESTIONS.map((q) => ({
+          studentId: q.studentId,
+          topic: q.topic,
+          text: q.text,
+          ...("answer" in q
+            ? {
+                status: "answered" as const,
+                answer: q.answer,
+                answeredBy: dean.id,
+                answeredAt: q.answeredAt,
+                createdAt: new Date(q.answeredAt.getTime() - q.askedBefore * 3_600_000),
+              }
+            : { status: "open" as const, createdAt: ago(q.hoursAgo) }),
+        })),
+      )
+      .returning({ id: s.questions.id, studentId: s.questions.studentId });
+    const answered1 = askedRows.find((r) => r.studentId === student1.id)!;
+    const answered1At = (QUESTIONS[0] as { answeredAt: Date }).answeredAt;
+    await tx.insert(s.notifications).values({
+      userId: student1.id,
+      kind: "question",
+      title: "Деканат ответил: учёба и оценки",
+      body: "Да, можно. Отдай справку в каб. 214 до пятницы — пропуск отметим как уважительный…",
+      href: `/ask/${answered1.id}`,
+      createdAt: answered1At,
+      readAt: new Date(answered1At.getTime() + 40 * 60_000),
+    });
 
     for (const [who, g, points] of [["student1", ge, 40], ["student2", mp, 30]] as const) {
       const r = ratingForecast(g.forecastInputs, points)!;

@@ -29,6 +29,7 @@ export const SECTIONS = {
   notifications: { title: "Уведомления", href: "/notifications", hint: "оценки, заявки, переносы, объявления" },
   card: { title: "Электронный студенческий", href: "/profile/card", hint: "QR для входа и проверки" },
   profile: { title: "Профиль", href: "/profile", hint: "данные, тема, выход на всех устройствах" },
+  write: { title: "Написать в деканат", href: "/ask/new", hint: "вопрос сотруднику, ответ придёт уведомлением" },
 } as const;
 export type Section = keyof typeof SECTIONS;
 
@@ -113,6 +114,9 @@ export function parseQuestion(raw: string): Intent[] {
   if (has(q, "студенческ", "студак", "qr", "кьюар", "пропуск в", "турникет", "вход в здани")) add({ kind: "section", section: "card" });
   if (has(q, "профил", "выйти", "выход", "парол", "тема", "темн", "почт", "телефон")) add({ kind: "section", section: "profile" });
   if (aboutScore && wantsDocument) add({ kind: "section", section: "grades" });
+  // Живой человек: «написать в деканат», «связаться с сотрудником», «мой вопрос».
+  if (has(q, "написать", "напиши", "связат", "сотрудник", "человек", "задать вопрос", "мой вопрос", "мои вопрос", "ответ деканат", "обратит", "обращени"))
+    add({ kind: "section", section: "write" });
 
   return out;
 }

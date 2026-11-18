@@ -7,7 +7,7 @@ import { requireRole } from "@/lib/auth/dal";
 // Уведомления студента. Всё, что принимает id, ищет его ТОЛЬКО среди уведомлений
 // пользователя из сессии: чужое уведомление неотличимо от несуществующего.
 
-export const NOTIFICATION_KINDS = ["score", "request", "change", "announcement"] as const;
+export const NOTIFICATION_KINDS = ["score", "request", "change", "announcement", "question"] as const;
 export type NotificationKind = (typeof NOTIFICATION_KINDS)[number];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bell, CalendarClock, FileText, Megaphone, Timer, TrendingUp, type LucideIcon } from "lucide-react";
+import { Bell, CalendarClock, FileText, Megaphone, MessageCircleQuestion, Timer, TrendingUp, type LucideIcon } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { FilterChip, FilterChips } from "@/components/ui/filter-chips";
 import { EmptyState } from "@/components/ui/states";
@@ -17,6 +17,7 @@ const KINDS: { kind: NotificationKind; label: string; icon: LucideIcon }[] = [
   { kind: "request", label: "Заявки", icon: FileText },
   { kind: "change", label: "Расписание", icon: CalendarClock },
   { kind: "announcement", label: "Объявления", icon: Megaphone },
+  { kind: "question", label: "Ответы", icon: MessageCircleQuestion },
 ];
 const ICON = Object.fromEntries(KINDS.map((k) => [k.kind, k.icon])) as Record<NotificationKind, LucideIcon>;
 

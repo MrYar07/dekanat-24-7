@@ -13,10 +13,10 @@ const DEAN_NAV: { href: string; label: string; icon: LucideIcon }[] = [
 /** Разделы кабинета деканата: вкладки под шапкой. У преподавателя раздел один, вкладок нет. */
 export function DeanNav() {
   const pathname = usePathname();
-  // «Заявки» — это очередь (/staff) и карточки из неё: заявка на документ и достижение.
+  // «Заявки» — это очередь (/staff) и карточки из неё: заявка на документ, достижение и вопрос.
   const isActive = (href: string) =>
     href === "/staff"
-      ? pathname === "/staff" || ["/staff/requests", "/staff/achievements", "/staff/stats"].some((p) => pathname.startsWith(p))
+      ? pathname === "/staff" || ["/staff/requests", "/staff/achievements", "/staff/questions", "/staff/stats"].some((p) => pathname.startsWith(p))
       : pathname.startsWith(href);
 
   return (

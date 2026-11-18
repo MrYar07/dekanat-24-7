@@ -69,6 +69,14 @@ describe("parseQuestion", () => {
     expect(first("хочу оценить преподавателя")).toEqual({ kind: "section", section: "feedback" });
   });
 
+  it("просьба связаться с человеком ведёт к вопросу в деканат", () => {
+    expect(first("написать в деканат")).toEqual({ kind: "section", section: "write" });
+    expect(first("хочу задать вопрос сотруднику")).toEqual({ kind: "section", section: "write" });
+    expect(first("где мой вопрос")).toEqual({ kind: "section", section: "write" });
+    // Справка важнее: «написать заявление на справку» — это документ, а не вопрос.
+    expect(first("написать заявление на перезачёт")).toMatchObject({ kind: "document", code: "recredit" });
+  });
+
   it("непонятный вопрос — пустой ответ, а не случайный раздел", () => {
     expect(parseQuestion("")).toEqual([]);
     expect(parseQuestion("   ?!  ")).toEqual([]);

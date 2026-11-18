@@ -34,8 +34,8 @@ const SETS: Record<"student" | "dean" | "teacher", Item[]> = {
     { href: "/ask", label: "Спроси деканат", icon: MessageCircleQuestion },
   ],
   dean: [
-    // «Заявки» — это очередь и карточки из неё: заявка на документ и достижение.
-    { href: "/staff", label: "Заявки", icon: Inbox, also: ["/staff/requests", "/staff/achievements"] },
+    // «Заявки» — это очередь и карточки из неё: заявка на документ, достижение и вопрос.
+    { href: "/staff", label: "Заявки", icon: Inbox, also: ["/staff/requests", "/staff/achievements", "/staff/questions"] },
     { href: "/staff/announcements", label: "Объявления", icon: Megaphone },
     { href: "/staff/schedule", label: "Расписание", icon: CalendarClock },
     { href: "/staff/stats", label: "Сводка", icon: ChartNoAxesColumn, gap: true },

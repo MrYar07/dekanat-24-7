@@ -398,7 +398,7 @@ export const announcements = pgTable("announcements", {
   withdrawnAt: timestamp("withdrawn_at", { withTimezone: true }),
 });
 
-export const notificationKindEnum = pgEnum("notification_kind", ["score", "request", "change", "announcement"]);
+export const notificationKindEnum = pgEnum("notification_kind", ["score", "request", "change", "announcement", "question"]);
 
 export const notifications = pgTable(
   "notifications",
@@ -419,6 +419,31 @@ export const notifications = pgTable(
   (t) => [index("notifications_user_idx").on(t.userId, t.createdAt)],
 );
 
+
+/**
+ * Вопрос студента деканату и ответ сотрудника. Один вопрос — один ответ: следующий вопрос — новой записью.
+ * Студент видит только свои вопросы; ответ приходит уведомлением со ссылкой на вопрос.
+ */
+export const questionStatusEnum = pgEnum("question_status", ["open", "answered"]);
+
+export const questions = pgTable(
+  "questions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    studentId: uuid("student_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** Тема из списка QUESTION_TOPICS (src/lib/questions): по ней деканат понимает, кому отвечать. */
+    topic: text("topic").notNull(),
+    text: text("text").notNull(),
+    status: questionStatusEnum("status").notNull().default("open"),
+    answer: text("answer"),
+    answeredBy: uuid("answered_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    answeredAt: timestamp("answered_at", { withTimezone: true }),
+  },
+  (t) => [index("questions_student_idx").on(t.studentId, t.createdAt), index("questions_status_idx").on(t.status, t.createdAt)],
+);
 
 /**
  * Одноразовые коды электронного студенческого. QR на экране меняется каждую минуту и живёт две:

@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, FileText, MessageCircleQuestion, Search, TrendingUp } from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronRight, FileText, MessageCircleQuestion, PenLine, Search, TrendingUp } from "lucide-react";
+import { QuestionStatusBadge } from "@/components/question-status";
 import { buttonClass } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/states";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
 import { EXAMPLES, parseQuestion, searchSections, SECTIONS, type Intent, type Section } from "@/lib/ask/intents";
 import { getSchedule, getToday } from "@/lib/data/learning";
+import { getMyQuestions } from "@/lib/data/questions";
 import { getDocumentCatalog } from "@/lib/data/requests";
+import { preview } from "@/lib/questions";
 import { addDays, relativeDay } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Спроси деканат" };
@@ -51,7 +54,10 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
       </form>
 
       {!q ? (
-        <Examples title="Можно спросить так" />
+        <div className="space-y-6">
+          <Examples title="Можно спросить так" />
+          <MyQuestions />
+        </div>
       ) : main ? (
         <div className="space-y-6">
           <section aria-label="Ответ">
@@ -68,8 +74,17 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
         </div>
       ) : (
         <div className="space-y-6">
-          <EmptyState icon={MessageCircleQuestion} title="Не понял вопрос">
-            Попробуй короче и проще, как в примерах ниже. С остальным поможет деканат: каб. 214, будни 10:00–17:00.
+          <EmptyState
+            icon={MessageCircleQuestion}
+            title="Не понял вопрос"
+            action={
+              <Link href={`/ask/new?q=${encodeURIComponent(q)}`} className={buttonClass("primary")}>
+                <PenLine className="size-4" aria-hidden="true" />
+                Написать в деканат
+              </Link>
+            }
+          >
+            Попробуй короче и проще, как в примерах ниже. Или отправь вопрос сотруднику деканата — ответ придёт уведомлением.
           </EmptyState>
           {found.length > 0 && (
             <section aria-labelledby="ask-found">
@@ -83,6 +98,52 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
         </div>
       )}
     </>
+  );
+}
+
+const day = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", timeZone: "Europe/Moscow" });
+
+/** Вопросы сотрудникам деканата: последние пять и кнопка «написать». */
+async function MyQuestions() {
+  const all = await getMyQuestions();
+  const shown = all.slice(0, 5);
+  return (
+    <section aria-labelledby="ask-mine">
+      <SectionTitle
+        action={
+          <Link href="/ask/new" className="text-brand inline-flex items-center gap-1 text-sm font-semibold hover:underline">
+            <PenLine className="size-4" aria-hidden="true" />
+            Написать
+          </Link>
+        }
+      >
+        <span id="ask-mine">Вопросы деканату</span>
+      </SectionTitle>
+      {shown.length === 0 ? (
+        <p className="text-muted text-sm">
+          Если кабинет не нашёл ответа, напиши сотруднику деканата. Ответ придёт уведомлением, идти в каб. 214 не нужно.
+        </p>
+      ) : (
+        <ul className="border-border bg-surface divide-border divide-y overflow-hidden rounded-xl border">
+          {shown.map((x) => (
+            <li key={x.id}>
+              <Link href={`/ask/${x.id}`} className="hover:bg-surface-2 flex items-center gap-3 px-4 py-3">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium">{preview(x.text, 80)}</span>
+                  <span className="text-muted mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                    <QuestionStatusBadge status={x.status} />
+                    <span>
+                      {x.topic} · {day.format(x.createdAt)}
+                    </span>
+                  </span>
+                </span>
+                <ChevronRight className="text-muted size-5 shrink-0" aria-hidden="true" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
