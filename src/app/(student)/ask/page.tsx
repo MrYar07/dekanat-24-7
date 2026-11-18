@@ -12,7 +12,7 @@ import { addDays, relativeDay } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Спроси деканат" };
 
-const num = new Intl.NumberFormat("ru-RU", { maximumFractionDigits: 1 });
+const num = new Intl.NumberFormat("ru-RU", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const MAX_QUESTION = 200;
 
 export default async function AskPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {

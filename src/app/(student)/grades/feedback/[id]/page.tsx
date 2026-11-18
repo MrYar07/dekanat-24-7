@@ -31,7 +31,7 @@ export default async function FeedbackCoursePage({ params }: { params: Promise<{
 
       <div className="max-w-xl">
         {course.voted ? (
-          <EmptyState icon={Check} title="Ты уже оценил этот курс">
+          <EmptyState icon={Check} title="Курс уже оценён">
             Ответ нельзя изменить: он ни с кем не связан, даже с тобой.
           </EmptyState>
         ) : (

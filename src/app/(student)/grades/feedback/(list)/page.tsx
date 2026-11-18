@@ -28,7 +28,7 @@ export default async function FeedbackListPage({ searchParams }: { searchParams:
       {thanks && (
         <div className="mb-5">
           <Callout tone="info" lead="Спасибо, ответ сохранён.">
-            {left > 0 ? `Осталось оценить: ${left}.` : "Ты оценил все курсы триместра."}
+            {left > 0 ? `Осталось оценить: ${left}.` : "Все курсы триместра оценены."}
           </Callout>
         </div>
       )}

@@ -38,9 +38,9 @@ test.describe("оценка преподавания", () => {
       await expect(page.getByText("Спасибо, ответ сохранён.")).toBeVisible();
       await expect(page.locator(`a[href="/grades/feedback/${course}"]`)).toHaveCount(0);
 
-      // Повторно — только «уже оценил».
+      // Повторно — только «курс уже оценён».
       await page.goto(`/grades/feedback/${course}`);
-      await expect(page.getByText("Ты уже оценил этот курс")).toBeVisible();
+      await expect(page.getByText("Курс уже оценён")).toBeVisible();
       await expect(page.getByRole("button", { name: "Отправить анонимно" })).toHaveCount(0);
 
       const teacher = await (await browser.newContext()).newPage();

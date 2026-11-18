@@ -95,7 +95,7 @@ export async function submitMyFeedback(courseId: string, raw: Record<string, unk
         .select({ courseId: courseFeedbackVotes.courseId })
         .from(courseFeedbackVotes)
         .where(and(eq(courseFeedbackVotes.courseId, courseId), eq(courseFeedbackVotes.studentId, user.id)));
-      return { ok: false, error: already ? "Ты уже оценил этот курс" : "Не получилось сохранить ответ" } as const;
+      return { ok: false, error: already ? "Курс уже оценён" : "Не получилось сохранить ответ" } as const;
     }
     await tx.insert(courseFeedback).values({ courseId, ...parsed.value });
     return { ok: true } as const;
