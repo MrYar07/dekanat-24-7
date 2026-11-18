@@ -65,6 +65,7 @@ export function ResultsForm({
                   max={100}
                   defaultValue={s.activity ?? ""}
                   placeholder="—"
+                  aria-label={`${s.name}: активность, 0–100`}
                   className="border-border-strong bg-surface focus:border-brand mt-1 block w-24 rounded-lg border px-3 py-2 text-base tabular-nums"
                 />
               </div>
