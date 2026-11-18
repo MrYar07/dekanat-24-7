@@ -1,5 +1,5 @@
 // PDF «Как создавался проект» для жюри. Собирается из документов репозитория, ничего не пишется руками заново:
-// проблема — из PRD, опрос — из docs/research/survey.md, инструменты и этапы — из журнала,
+// проблема — из PRD, инструменты и этапы — из журнала,
 // вход и защита — из ARCHITECTURE.md, «что сделано вручную» — из строк «Вручную» журнала.
 //
 // Запуск: npm run report → docs/process/kak-sozdavalsya-proekt.pdf
@@ -40,7 +40,6 @@ function localize(md: string, baseDir: string) {
 
 const prd = read("docs/PRD.md");
 const journal = read("docs/process/JOURNAL.md");
-const survey = read("docs/research/survey.md");
 const arch = read("docs/ARCHITECTURE.md");
 
 // Этапы журнала: всё от первого «## Этап» до конца.
@@ -59,7 +58,6 @@ const manual = [...stagesMd.matchAll(/^## (Этап \d+)\..*$([\s\S]*?)(?=^## Э
 
 const parts: { id: string; title: string; md: string }[] = [
   { id: "problem", title: "Проблема", md: demote(section(prd, /^## 2\. Проблема/)) },
-  { id: "survey", title: "Опрос однокурсников", md: demote(survey.replace(/^# .*\n/, "")) },
   { id: "tools", title: "ИИ-инструменты", md: localize(section(journal, /^## Инструменты/), "docs/process") },
   { id: "process", title: "Как устроена работа с ИИ", md: localize(section(journal, /^## Как устроена работа с ИИ/), "docs/process") },
   { id: "before-after", title: "Было → стало", md: localize(section(journal, /^## Было → стало/), "docs/process") },
