@@ -14,6 +14,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/seed.ts",
     "report": "tsx scripts/build-report.ts",
+    "demo:record": "tsx scripts/record-demo.ts demo-video",
     "typecheck": "tsc --noEmit",
     "test:e2e": "playwright test"
   },

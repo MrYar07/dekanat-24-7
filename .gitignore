@@ -16,3 +16,6 @@ next-env.d.ts
 *.pem
 .vercel
 deploy/backups/
+
+# Ролики демо-видео (scripts/record-demo.ts)
+demo-video/
