@@ -60,9 +60,12 @@ const manual = [...stagesMd.matchAll(/^## (Этап \d+)\..*$([\s\S]*?)(?=^## Э
 const parts: { id: string; title: string; md: string }[] = [
   { id: "problem", title: "Проблема", md: demote(section(prd, /^## 2\. Проблема/)) },
   { id: "survey", title: "Опрос однокурсников", md: demote(survey.replace(/^# .*\n/, "")) },
-  { id: "tools", title: "ИИ-инструменты", md: section(journal, /^## Инструменты/) },
+  { id: "tools", title: "ИИ-инструменты", md: localize(section(journal, /^## Инструменты/), "docs/process") },
+  { id: "process", title: "Как устроена работа с ИИ", md: localize(section(journal, /^## Как устроена работа с ИИ/), "docs/process") },
+  { id: "before-after", title: "Было → стало", md: localize(section(journal, /^## Было → стало/), "docs/process") },
   { id: "stages", title: "Этапы: промпты, решения, ошибки", md: localize(demote(stagesMd.replace(/^---$/gm, "")), "docs/process") },
   { id: "security", title: "Как устроены вход и защита", md: demote(section(arch, /^## Безопасность/)) },
+  { id: "scale", title: "Стек и масштабирование", md: demote(section(arch, /^## Стек/)) + "\n\n## Масштабирование\n\n" + localize(section(arch, /^## Масштабирование/), "docs") },
   {
     id: "manual",
     title: "Что сделано вручную",
