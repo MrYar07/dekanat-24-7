@@ -165,7 +165,7 @@ export async function orderDocument(code: DocumentCode, input: Record<string, st
     };
     if (code === "study") snapshot = { kind: "study", student, purpose: String(payload.purpose) };
     else if (code === "rating") {
-      const rating = await getMyRatingSnapshot();
+      const rating = await getMyRatingSnapshot(payload.period === "всё время обучения" ? "all" : "term");
       if (!rating) return { ok: false, error: "Для выписки пока нет баллов: дождись первых срезов." };
       snapshot = { kind: "rating", student, ...rating };
     }

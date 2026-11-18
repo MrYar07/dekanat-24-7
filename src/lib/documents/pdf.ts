@@ -3,7 +3,7 @@ import { join } from "node:path";
 import fontkit from "@pdf-lib/fontkit";
 import { PDFDocument, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import QRCode from "qrcode";
-import type { DocumentSnapshot, RatingSnapshot, StudentSnapshot, StudySnapshot } from "./types";
+import type { DocumentSnapshot, RatingRow, RatingSnapshot, StudentSnapshot, StudySnapshot, TermRecord } from "./types";
 
 // PDF справок «Деканата 24/7». PT Serif (OFL) разбит на наборы: кириллица отдельно от латиницы
 // и цифр. Поэтому текст рисуется кусками, и для каждого символа берётся набор, в котором он есть.
@@ -88,12 +88,35 @@ const W = 595.28;
 const H = 841.89;
 const M = 56;
 
+// Нижняя граница текста на странице. На последней странице ниже — блок с QR-кодом.
+const BOTTOM = M + 18;
+const QR = 104;
+const FOOTER_TOP = M + QR + 16;
+
 class Writer {
   y = H - M;
+  page: PDFPage;
+  /** Низ области текста. Блок с QR-кодом рисуется ниже, поэтому там граница снимается. */
+  bottom = BOTTOM;
+
   constructor(
-    readonly page: PDFPage,
+    readonly doc: PDFDocument,
     readonly f: Fonts,
-  ) {}
+    private readonly continuation: (w: Writer) => void,
+  ) {
+    this.page = doc.addPage([W, H]);
+  }
+
+  /** Новая страница с шапкой продолжения. */
+  newPage() {
+    this.page = this.doc.addPage([W, H]);
+    this.continuation(this);
+  }
+
+  /** Если блок высотой h не помещается — переносим на следующую страницу. */
+  ensure(h: number) {
+    if (this.y - h < this.bottom) this.newPage();
+  }
 
   text(s: string, opts: { size?: number; bold?: boolean; color?: ReturnType<typeof rgb>; x?: number; gap?: number; width?: number } = {}) {
     const size = opts.size ?? 11;
@@ -101,6 +124,7 @@ class Writer {
     const x = opts.x ?? M;
     const lineHeight = size * 1.45;
     for (const line of wrap(s, opts.width ?? W - x - M, (t) => widthOf(t, size, face))) {
+      this.ensure(lineHeight);
       this.y -= lineHeight;
       draw(this.page, line, x, this.y, size, face, opts.color);
     }
@@ -119,9 +143,15 @@ class Writer {
     this.y -= gap;
   }
 
-  /** Строка «название ……… значение», как ведомость в интерфейсе. */
+  /** Строка «название ……… значение», как ведомость в интерфейсе. Не разрывается между страницами. */
   row(label: string, value: string, size = 11) {
     const labelW = 170;
+    const lh = size * 1.45;
+    const lines = Math.max(
+      wrap(label, labelW - 8, (t) => widthOf(t, size, this.f.regular)).length,
+      wrap(value, W - M - labelW - M, (t) => widthOf(t, size, this.f.regular)).length,
+    );
+    this.ensure(lines * lh + 4);
     const startY = this.y;
     this.text(label, { size, color: MUTED, width: labelW - 8 });
     const afterLabel = this.y;
@@ -131,9 +161,8 @@ class Writer {
   }
 }
 
-function header(w: Writer, title: string, info: IssueInfo) {
-  const { page, f } = w;
-  // Обязательная пометка конкурса: документ вымышленный.
+/** Обязательная пометка конкурса — на каждой странице. */
+function conceptBanner(page: PDFPage, f: Fonts) {
   page.drawRectangle({ x: 0, y: H - 26, width: W, height: 26, color: rgb(0.97, 0.95, 0.9) });
   draw(
     page,
@@ -144,6 +173,11 @@ function header(w: Writer, title: string, info: IssueInfo) {
     f.regular,
     MUTED,
   );
+}
+
+function header(w: Writer, title: string, info: IssueInfo) {
+  const { page, f } = w;
+  conceptBanner(page, f);
   w.y = H - 26 - 28;
   const top = w.y;
   w.text("Университет «Меридиан»", { size: 16, bold: true, color: BRAND });
@@ -157,6 +191,16 @@ function header(w: Writer, title: string, info: IssueInfo) {
   w.y -= size * 1.45;
   draw(page, title, (W - widthOf(title, size, f.bold)) / 2, w.y, size, f.bold);
   w.y -= 18;
+}
+
+/** Шапка следующих страниц: пометка, номер документа и владелец — чтобы лист не потерялся. */
+function continuationHeader(title: string, info: IssueInfo, holder: string) {
+  return (w: Writer) => {
+    conceptBanner(w.page, w.f);
+    w.y = H - 26 - 12;
+    w.text(`${title} № ${info.number} · ${holder}`, { size: 9, color: MUTED });
+    w.rule(8);
+  };
 }
 
 function studentRows(w: Writer, s: StudentSnapshot) {
@@ -178,26 +222,90 @@ function studyBody(w: Writer, s: StudySnapshot) {
   w.text(`Справка выдана для предъявления: ${s.purpose}.`, { size: 12 });
 }
 
-function ratingBody(w: Writer, s: RatingSnapshot) {
-  w.text(`${fullName(s.student)}, группа ${s.student.group}, ${s.student.course} курс. ${s.term}.`, { size: 12, gap: 14 });
+const COLS = [M, M + 250, M + 320, M + 370];
+const ROW_SIZE = 10.5;
 
-  const cols = [M, M + 250, M + 320, M + 370];
-  const head = ["Дисциплина", "Форма", "Балл", "Оценка"];
-  w.y -= 14;
-  head.forEach((h, i) => draw(w.page, h, cols[i], w.y, 9, w.f.bold, MUTED));
-  w.y -= 6;
-  w.page.drawLine({ start: { x: M, y: w.y }, end: { x: W - M, y: w.y }, thickness: 0.6, color: RULE });
-  for (const r of s.rows) {
-    const lines = wrap(r.discipline, 240, (t) => widthOf(t, 10.5, w.f.regular));
+function rowLines(w: Writer, r: RatingRow) {
+  return wrap(r.discipline, 240, (t) => widthOf(t, ROW_SIZE, w.f.regular));
+}
+
+/** Высота таблицы с шапкой и сноской о пересдаче. */
+function tableHeight(w: Writer, rows: RatingRow[]) {
+  return 20 + rows.reduce((h, r) => h + 16 + (rowLines(w, r).length - 1) * 14 + 6, 0) + (rows.some((r) => r.retakes) ? 18 : 0);
+}
+
+/** Если раздел помещается на страницу целиком, он не разрывается. Длинный переносится по строкам таблицы. */
+function keepTogether(w: Writer, h: number) {
+  if (h <= H - 26 - 40 - BOTTOM) w.ensure(h);
+}
+
+/** Таблица дисциплин. При переносе на новую страницу шапка таблицы повторяется. */
+function disciplineTable(w: Writer, rows: RatingRow[]) {
+  const headRow = () => {
+    w.y -= 14;
+    ["Дисциплина", "Форма", "Балл", "Оценка"].forEach((h, i) => draw(w.page, h, COLS[i], w.y, 9, w.f.bold, MUTED));
+    w.y -= 6;
+    w.page.drawLine({ start: { x: M, y: w.y }, end: { x: W - M, y: w.y }, thickness: 0.6, color: RULE });
+  };
+  const layout = rows.map((r) => {
+    const lines = rowLines(w, r);
+    return { r, lines, h: 16 + (lines.length - 1) * 14 + 6 };
+  });
+  // Шапка не остаётся одна внизу страницы: с ней переносится хотя бы первая строка.
+  w.ensure(20 + (layout[0]?.h ?? 0));
+  headRow();
+  for (const { r, lines, h } of layout) {
+    if (w.y - h < w.bottom) {
+      w.newPage();
+      headRow();
+    }
     w.y -= 16;
     const rowTop = w.y;
-    lines.forEach((l, i) => draw(w.page, l, cols[0], rowTop - i * 14, 10.5, w.f.regular));
-    draw(w.page, r.assessment === "exam" ? "экзамен" : "зачёт", cols[1], rowTop, 10.5, w.f.regular, MUTED);
-    draw(w.page, one.format(r.score), cols[2], rowTop, 10.5, w.f.bold);
-    draw(w.page, r.mark, cols[3], rowTop, 10.5, w.f.regular);
+    lines.forEach((l, i) => draw(w.page, l, COLS[0], rowTop - i * 14, ROW_SIZE, w.f.regular));
+    draw(w.page, r.assessment === "exam" ? "экзамен" : "зачёт", COLS[1], rowTop, ROW_SIZE, w.f.regular, MUTED);
+    draw(w.page, `${one.format(r.score)}${r.retakes ? "*" : ""}`, COLS[2], rowTop, ROW_SIZE, w.f.bold);
+    draw(w.page, r.mark, COLS[3], rowTop, ROW_SIZE, w.f.regular);
     w.y = rowTop - (lines.length - 1) * 14 - 6;
     w.page.drawLine({ start: { x: M, y: w.y }, end: { x: W - M, y: w.y }, thickness: 0.4, color: RULE });
   }
+  if (rows.some((r) => r.retakes)) {
+    w.y -= 4;
+    w.text("* сдано с пересдачи", { size: 9, color: MUTED });
+  }
+}
+
+/** Закрытый триместр в выписке «за всё время». */
+function termSection(w: Writer, t: TermRecord) {
+  w.y -= 10;
+  // Заголовок, таблица и рейтинг триместра — на одной странице, если помещаются.
+  keepTogether(w, 12 * 1.45 + tableHeight(w, t.rows) + 8 + 10.5 * 1.45 + 4);
+  w.text(t.term, { size: 12, bold: true });
+  disciplineTable(w, t.rows);
+  w.y -= 8;
+  w.row("Рейтинг триместра", `${one.format(t.rating)} (средний балл ${one.format(t.base)}, бонус +${one.format(t.bonus)})`, 10.5);
+}
+
+function ratingBody(w: Writer, s: RatingSnapshot) {
+  const all = s.history !== undefined;
+  w.text(`${fullName(s.student)}, группа ${s.student.group}, ${s.student.course} курс.${all ? "" : ` ${s.term}.`}`, {
+    size: 12,
+    gap: all ? 4 : 14,
+  });
+
+  if (all) {
+    const n = s.history!.length + 1;
+    w.text(`За всё время обучения: ${n} ${plural(n, "триместр", "триместра", "триместров")}, последний — текущий.`, {
+      size: 10.5,
+      color: MUTED,
+      gap: 4,
+    });
+    for (const t of s.history!) termSection(w, t);
+    w.y -= 10;
+    keepTogether(w, 12 * 1.45 + tableHeight(w, s.rows));
+    w.text(`${s.term} — текущий`, { size: 12, bold: true });
+  }
+
+  disciplineTable(w, s.rows);
   w.y -= 12;
   w.row("Средний балл", one.format(s.base));
   w.row("Бонус активности", `+${one.format(s.bonus)}`);
@@ -215,16 +323,26 @@ function ratingBody(w: Writer, s: RatingSnapshot) {
   }
 }
 
+function plural(n: number, one: string, few: string, many: string) {
+  const m10 = n % 10;
+  const m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
+
 async function footer(doc: PDFDocument, w: Writer, info: IssueInfo) {
+  // Блок с QR-кодом — целиком на последней странице.
+  if (w.y < FOOTER_TOP + 12) w.newPage();
+  w.bottom = 0;
   const png = await QRCode.toBuffer(info.verifyUrl, { type: "png", margin: 1, width: 360, errorCorrectionLevel: "M" });
   const qr = await doc.embedPng(png);
-  const size = 104;
   const bottom = M;
-  w.page.drawImage(qr, { x: M, y: bottom, width: size, height: size });
-  w.page.drawLine({ start: { x: M, y: bottom + size + 16 }, end: { x: W - M, y: bottom + size + 16 }, thickness: 0.6, color: RULE });
+  w.page.drawImage(qr, { x: M, y: bottom, width: QR, height: QR });
+  w.page.drawLine({ start: { x: M, y: FOOTER_TOP }, end: { x: W - M, y: FOOTER_TOP }, thickness: 0.6, color: RULE });
 
-  const x = M + size + 18;
-  w.y = bottom + size + 2;
+  const x = M + QR + 18;
+  w.y = bottom + QR + 2;
   const width = W - x - M;
   w.text("Подлинность можно проверить по QR-коду или по ссылке:", { size: 10, bold: true, x, width });
   w.text(info.verifyUrl, { size: 9, x, width, color: BRAND, gap: 4 });
@@ -235,24 +353,43 @@ async function footer(doc: PDFDocument, w: Writer, info: IssueInfo) {
   );
 }
 
+/** «Стр. 1 из 3» внизу каждой страницы — только если страниц больше одной. */
+function pageNumbers(doc: PDFDocument, f: Fonts) {
+  const pages = doc.getPages();
+  if (pages.length < 2) return;
+  pages.forEach((page, i) => {
+    const s = `Стр. ${i + 1} из ${pages.length}`;
+    draw(page, s, W - M - widthOf(s, 8.5, f.regular), M / 2 - 4, 8.5, f.regular, MUTED);
+  });
+}
+
 export const DOCUMENT_TITLE: Record<DocumentSnapshot["kind"], string> = {
   study: "СПРАВКА ОБ ОБУЧЕНИИ",
   rating: "ВЫПИСКА РЕЙТИНГА",
 };
 
+/** Заголовок документа: у выписки «за всё время» он длиннее. */
+export function documentTitle(s: DocumentSnapshot) {
+  return s.kind === "rating" && s.history ? "ВЫПИСКА РЕЙТИНГА ЗА ВСЁ ВРЕМЯ ОБУЧЕНИЯ" : DOCUMENT_TITLE[s.kind];
+}
+
 export async function renderDocument(snapshot: DocumentSnapshot, info: IssueInfo): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  doc.setTitle(`${DOCUMENT_TITLE[snapshot.kind]} № ${info.number}`);
+  const title = documentTitle(snapshot);
+  doc.setTitle(`${title} № ${info.number}`);
   doc.setAuthor("Университет «Меридиан» (вымышленный), Деканат 24/7");
   doc.setCreator("Деканат 24/7");
   doc.setLanguage("ru-RU");
   const fonts = await loadFonts(doc);
-  const w = new Writer(doc.addPage([W, H]), fonts);
+  const s = snapshot.student;
+  const holder = `${s.lastName} ${s.firstName[0]}.${s.middleName ? ` ${s.middleName[0]}.` : ""}`;
+  const w = new Writer(doc, fonts, continuationHeader(DOCUMENT_TITLE[snapshot.kind], info, holder));
 
-  header(w, DOCUMENT_TITLE[snapshot.kind], info);
+  header(w, title, info);
   if (snapshot.kind === "study") studyBody(w, snapshot);
   else ratingBody(w, snapshot);
   await footer(doc, w, info);
+  pageNumbers(doc, fonts);
 
   return doc.save();
 }

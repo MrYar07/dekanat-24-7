@@ -431,20 +431,61 @@ export async function getGrades(at: Date = new Date()) {
 }
 
 /** Данные для выписки рейтинга: только дисциплины, по которым уже есть балл. */
-export async function getMyRatingSnapshot() {
+type Performance = Awaited<ReturnType<typeof loadTermPerformance>>;
+
+/** Строки выписки: дисциплины, по которым уже есть балл. */
+function statementRows(perf: Performance) {
+  return perf.courses
+    .filter((c) => c.result)
+    .map((c) => ({
+      discipline: c.discipline,
+      assessment: c.assessment,
+      score: Math.round(c.result!.score * 10) / 10,
+      mark: MARK_LABEL[markFor(c.result!.score, perf.settings)],
+      retakes: c.retakes,
+    }));
+}
+
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+/** Закрытые триместры студента по порядку — для выписки «за всё время». Триместр без баллов пропускается. */
+async function loadHistory(ctx: StudentContext) {
+  const past = (await myTerms(ctx.me.groupId)).filter((t) => !t.isCurrent);
+  const pastCourses = await groupCourses(
+    ctx.me.groupId,
+    past.map((t) => t.id),
+  );
+  const perfs = await Promise.all(
+    past.map((t) => loadTermPerformance(ctx.user.id, t.id, pastCourses.filter((c) => c.termId === t.id))),
+  );
+  return past.flatMap((t, i) => {
+    const r = perfs[i].rating;
+    if (!r) return [];
+    return [
+      {
+        term: `${t.name} ${t.academicYear} учебного года`.trim(),
+        rows: statementRows(perfs[i]),
+        rating: round1(r.rating),
+        base: round1(r.base),
+        bonus: round1(r.bonus),
+      },
+    ];
+  });
+}
+
+/** Данные выписки рейтинга. period "all" добавляет все закрытые триместры. */
+export async function getMyRatingSnapshot(period: "term" | "all" = "term") {
   const ctx = await loadStudent();
-  const [perf, archive, standing] = await Promise.all([loadPerformance(ctx), loadArchive(ctx), loadStanding(ctx)]);
+  const [perf, archive, standing, history] = await Promise.all([
+    loadPerformance(ctx),
+    loadArchive(ctx),
+    loadStanding(ctx),
+    period === "all" ? loadHistory(ctx) : Promise.resolve(undefined),
+  ]);
   if (!ctx.term || !perf.rating) return null;
   return {
     term: `${ctx.term.name} ${ctx.term.academicYear} учебного года`.trim(),
-    rows: perf.courses
-      .filter((c) => c.result)
-      .map((c) => ({
-        discipline: c.discipline,
-        assessment: c.assessment,
-        score: Math.round(c.result!.score * 10) / 10,
-        mark: MARK_LABEL[markFor(c.result!.score, perf.settings)],
-      })),
+    rows: statementRows(perf),
     rating: perf.rating.rating,
     base: perf.rating.base,
     bonus: perf.rating.bonus,
@@ -454,6 +495,7 @@ export async function getMyRatingSnapshot() {
       .filter((y) => y.rating !== null)
       .map((y) => ({ academicYear: y.academicYear, rating: Math.round(y.rating! * 10) / 10, complete: y.complete })),
     place: standing?.standing ? { place: standing.standing.place, total: standing.standing.total, course: standing.course } : undefined,
+    ...(history ? { history } : {}),
   };
 }
 

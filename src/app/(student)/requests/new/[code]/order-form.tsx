@@ -39,7 +39,7 @@ function SelectField({
             {o}
           </option>
         ))}
-        {field.other && <option value="__other">другое — напишу сам</option>}
+        {field.other && <option value="__other">другое — впишу своё</option>}
       </select>
       {choice === "__other" && (
         <TextField

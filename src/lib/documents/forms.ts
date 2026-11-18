@@ -14,6 +14,8 @@ export const STUDY_PURPOSES = [
   "в военный комиссариат",
 ] as const;
 
+export const RATING_PERIODS = ["текущий триместр", "всё время обучения"] as const;
+
 export type Field =
   | { name: string; label: string; kind: "select"; options: readonly string[]; other?: boolean; hint?: string }
   | { name: string; label: string; kind: "text"; placeholder?: string; hint?: string; optional?: boolean }
@@ -21,7 +23,7 @@ export type Field =
 
 export const FIELDS: Record<DocumentCode, Field[]> = {
   study: [{ name: "purpose", label: "Куда нужна справка", kind: "select", options: STUDY_PURPOSES, other: true }],
-  rating: [],
+  rating: [{ name: "period", label: "За какой период", kind: "select", options: RATING_PERIODS }],
   scholarship: [
     { name: "period", label: "За какой период", kind: "select", options: ["текущий триместр", "сентябрь — октябрь", "учебный год"] },
     { name: "copies", label: "Сколько экземпляров", kind: "number", min: 1, max: 3 },
@@ -55,7 +57,7 @@ const copies = (max: number) => z.coerce.number().int("Целое число").m
 
 export const SCHEMAS = {
   study: z.object({ purpose: text(120) }),
-  rating: z.object({}),
+  rating: z.object({ period: z.enum(RATING_PERIODS) }),
   scholarship: z.object({ period: z.enum(["текущий триместр", "сентябрь — октябрь", "учебный год"]), copies: copies(3) }),
   academic: z.object({ purpose: text(200), copies: copies(2) }),
   recredit: z.object({

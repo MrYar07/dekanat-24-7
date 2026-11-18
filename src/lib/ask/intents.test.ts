@@ -25,6 +25,8 @@ describe("parseQuestion", () => {
 
   it("другие документы", () => {
     expect(first("выписка рейтинга")).toEqual({ kind: "document", code: "rating" });
+    expect(first("выписка за всё время")).toEqual({ kind: "document", code: "rating", period: "всё время обучения" });
+    expect(first("нужна выписка оценок за все годы")).toEqual({ kind: "document", code: "rating", period: "всё время обучения" });
     expect(first("справка о стипендии")).toEqual({ kind: "document", code: "scholarship" });
     expect(first("академическая справка для перевода")).toEqual({ kind: "document", code: "academic" });
     expect(first("хочу перезачесть курс")).toEqual({ kind: "document", code: "recredit" });

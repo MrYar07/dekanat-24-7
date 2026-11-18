@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { PDFDocument } from "pdf-lib";
 import { login, query, requestIdOf } from "./helpers";
 
 test.describe("справки: разделение данных", () => {
@@ -63,6 +64,51 @@ test.describe("справка за минуту", () => {
     await gp.goto("/verify/AAAAAAAAAAAAAAAAAAAAAA");
     await expect(gp.getByRole("heading", { name: "Документ не найден" })).toBeVisible();
     await guest.close();
+  });
+});
+
+test.describe("выписка рейтинга за всё время", () => {
+  test("из «Спроси деканат» — форма с выбранным периодом, PDF на несколько страниц", async ({ page }) => {
+    let id: string | undefined;
+    try {
+      await login(page, "student2");
+      await page.goto("/ask?q=" + encodeURIComponent("выписка за всё время"));
+      await page.getByRole("link", { name: "Открыть заполненную форму" }).click();
+      await expect(page.getByLabel("За какой период")).toHaveValue("всё время обучения");
+      await page.getByRole("button", { name: "Сформировать PDF" }).click();
+
+      await expect(page).toHaveURL(/\/requests\/[0-9a-f-]{36}\?new=1$/);
+      id = page.url().match(/requests\/([0-9a-f-]{36})/)![1];
+      await expect(page.getByText("всё время обучения").first()).toBeVisible();
+
+      const res = await page.request.get(`/requests/${id}/document`);
+      expect(res.headers()["content-type"]).toBe("application/pdf");
+      const pdf = await PDFDocument.load(await res.body());
+      // У студента 3-го курса шесть закрытых триместров и текущий — на одну страницу не помещается.
+      expect(pdf.getPageCount()).toBeGreaterThan(1);
+      expect(pdf.getTitle()).toMatch(/^ВЫПИСКА РЕЙТИНГА ЗА ВСЁ ВРЕМЯ ОБУЧЕНИЯ № Р-\d{6}$/);
+
+      const [{ history }] = await query<{ history: number }>(
+        "select jsonb_array_length(snapshot->'history') as history from issued_documents where request_id = $1",
+        [id],
+      );
+      expect(history).toBeGreaterThanOrEqual(6);
+    } finally {
+      if (id) {
+        await query("delete from issued_documents where request_id = $1", [id]);
+        await query("delete from request_events where request_id = $1", [id]);
+        await query("delete from requests where id = $1", [id]);
+      }
+    }
+  });
+
+  test("по умолчанию — текущий триместр, как раньше", async ({ page }) => {
+    await login(page, "student1");
+    await page.goto("/requests/new/rating");
+    await expect(page.getByLabel("За какой период")).toHaveValue("текущий триместр");
+    // Подмена периода в адресе на неизвестный не подставляется.
+    await page.goto("/requests/new/rating?period=" + encodeURIComponent("1990 год"));
+    await expect(page.getByLabel("За какой период")).toHaveValue("текущий триместр");
   });
 });
 

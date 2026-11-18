@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { PDFDocument } from "pdf-lib";
 import { isVerificationCode, maskName, newVerificationCode } from ".";
-import { documentNumber, renderDocument, runs, wrap } from "./pdf";
-import type { StudentSnapshot } from "./types";
+import { documentNumber, documentTitle, renderDocument, runs, wrap } from "./pdf";
+import type { RatingSnapshot, StudentSnapshot } from "./types";
 
 const student: StudentSnapshot = {
   lastName: "Смирнова",
@@ -84,5 +84,53 @@ describe("PDF", () => {
       { ...info, number: "Р-000013" },
     );
     expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
+  });
+
+  const termRows = (n: number) =>
+    Array.from({ length: n }, (_, i) => ({
+      discipline: i === 0 ? "Международные валютно-кредитные отношения и мировые финансовые рынки" : `Дисциплина ${i + 1}`,
+      assessment: (i % 2 ? "credit" : "exam") as "exam" | "credit",
+      score: 70 + i,
+      mark: "хорошо",
+      retakes: i === 2 ? 1 : 0,
+    }));
+  const allTime: RatingSnapshot = {
+    kind: "rating",
+    student,
+    term: "1-й триместр 2026/27 учебного года",
+    rows: termRows(6),
+    rating: 74.8,
+    base: 73.6,
+    bonus: 1.2,
+    forecast: true,
+    years: [
+      { academicYear: "2026/27", rating: 73.6, complete: false },
+      { academicYear: "2025/26", rating: 72.5, complete: true },
+      { academicYear: "2024/25", rating: 75.5, complete: true },
+    ],
+    // Восемь закрытых триместров, как у студента 3-го курса.
+    history: Array.from({ length: 8 }, (_, i) => ({
+      term: `${(i % 3) + 1}-й триместр ${2024 + Math.floor(i / 3)}/${25 + Math.floor(i / 3)} учебного года`,
+      rows: termRows(6),
+      rating: 75,
+      base: 74,
+      bonus: 1,
+    })),
+  };
+
+  it("выписка за всё время переносится на следующие страницы", async () => {
+    const pdf = await PDFDocument.load(await renderDocument(allTime, { ...info, number: "Р-000014" }));
+    expect(pdf.getPageCount()).toBeGreaterThan(1);
+    expect(pdf.getTitle()).toBe("ВЫПИСКА РЕЙТИНГА ЗА ВСЁ ВРЕМЯ ОБУЧЕНИЯ № Р-000014");
+  });
+
+  it("заголовок выписки за триместр прежний", () => {
+    expect(documentTitle({ ...allTime, history: undefined })).toBe("ВЫПИСКА РЕЙТИНГА");
+    expect(documentTitle(allTime)).toBe("ВЫПИСКА РЕЙТИНГА ЗА ВСЁ ВРЕМЯ ОБУЧЕНИЯ");
+  });
+
+  it("длинная таблица триместра тоже не выходит за поле страницы", async () => {
+    const bytes = await renderDocument({ ...allTime, history: undefined, rows: termRows(40) }, { ...info, number: "Р-000015" });
+    expect((await PDFDocument.load(bytes)).getPageCount()).toBeGreaterThan(1);
   });
 });

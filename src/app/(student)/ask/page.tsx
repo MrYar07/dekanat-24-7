@@ -148,7 +148,9 @@ const DOC_TITLE = {
 } as const;
 
 function docHref(i: Extract<Intent, { kind: "document" }>) {
-  return `/requests/new/${i.code}${i.purpose ? `?purpose=${encodeURIComponent(i.purpose)}` : ""}`;
+  if (i.purpose) return `/requests/new/${i.code}?purpose=${encodeURIComponent(i.purpose)}`;
+  if (i.period) return `/requests/new/${i.code}?period=${encodeURIComponent(i.period)}`;
+  return `/requests/new/${i.code}`;
 }
 
 async function Answer({ intent }: { intent: Intent }) {
@@ -185,6 +187,7 @@ async function DocumentAnswer({ intent }: { intent: Extract<Intent, { kind: "doc
           <p className="text-lg font-semibold">
             {type?.name ?? DOC_TITLE[intent.code]}
             {intent.purpose && <span className="text-muted font-normal"> — {intent.purpose}</span>}
+            {intent.period && <span className="text-muted font-normal"> — за {intent.period}</span>}
           </p>
           <p className="text-muted mt-1 text-sm">
             {type?.instant
@@ -196,7 +199,7 @@ async function DocumentAnswer({ intent }: { intent: Extract<Intent, { kind: "doc
         </div>
       </div>
       <Link href={docHref(intent)} className={buttonClass("primary", "mt-4 w-full sm:w-auto")}>
-        {intent.purpose ? "Открыть заполненную форму" : "Открыть форму"}
+        {intent.purpose || intent.period ? "Открыть заполненную форму" : "Открыть форму"}
         <ArrowRight className="size-4" aria-hidden="true" />
       </Link>
     </Card>

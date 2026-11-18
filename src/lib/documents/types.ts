@@ -16,11 +16,23 @@ export type StudentSnapshot = {
 
 export type StudySnapshot = { kind: "study"; student: StudentSnapshot; purpose: string };
 
+export type RatingRow = {
+  discipline: string;
+  assessment: "exam" | "credit";
+  score: number;
+  mark: string;
+  /** Сколько раз пересдавали. В выписках до архива поля нет. */
+  retakes?: number;
+};
+
+/** Закрытый триместр в выписке «за всё время». */
+export type TermRecord = { term: string; rows: RatingRow[]; rating: number; base: number; bonus: number };
+
 export type RatingSnapshot = {
   kind: "rating";
   student: StudentSnapshot;
   term: string;
-  rows: { discipline: string; assessment: "exam" | "credit"; score: number; mark: string }[];
+  rows: RatingRow[];
   rating: number;
   base: number;
   bonus: number;
@@ -29,6 +41,8 @@ export type RatingSnapshot = {
   years?: { academicYear: string; rating: number; complete: boolean }[];
   /** Место на курсе по рейтингу триместра. В маленьком курсе его нет. */
   place?: { place: number; total: number; course: number };
+  /** Выписка «за всё время обучения»: закрытые триместры по порядку, текущий — в term и rows. */
+  history?: TermRecord[];
 };
 
 export type DocumentSnapshot = StudySnapshot | RatingSnapshot;

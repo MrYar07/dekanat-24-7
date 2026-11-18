@@ -2,11 +2,11 @@
 // PRD §5.8 разрешает этот режим: «если ИИ недоступен, строка работает как обычный поиск по разделам».
 // Здесь только разбор текста. Данные студента подставляет страница, на сервере, из слоя доступа.
 
-import { STUDY_PURPOSES, type DocumentCode } from "@/lib/documents/forms";
+import { RATING_PERIODS, STUDY_PURPOSES, type DocumentCode } from "@/lib/documents/forms";
 
 export type Intent =
-  /** Заказать документ; для справки об обучении — сразу с выбранным назначением. */
-  | { kind: "document"; code: DocumentCode; purpose?: (typeof STUDY_PURPOSES)[number] }
+  /** Заказать документ; для справки об обучении — сразу с выбранным назначением, для выписки — с периодом. */
+  | { kind: "document"; code: DocumentCode; purpose?: (typeof STUDY_PURPOSES)[number]; period?: (typeof RATING_PERIODS)[number] }
   /** Карточка со средним баллом и рейтингом. */
   | { kind: "rating" }
   /** Карточка с парами: ближайшими, на сегодня или на завтра. */
@@ -74,7 +74,11 @@ export function parseQuestion(raw: string): Intent[] {
   if (has(q, "перезач", "перезачет")) add({ kind: "document", code: "recredit" });
   if (has(q, "академическ") || (has(q, "перевод", "перевестись", "отчисл") && !has(q, PARA))) add({ kind: "document", code: "academic" });
   if (wantsDocument && has(q, "стипенд")) add({ kind: "document", code: "scholarship" });
-  if (has(q, "выписк") || (wantsDocument && has(q, "рейтинг", "оценк", "балл"))) add({ kind: "document", code: "rating" });
+  if (has(q, "выписк") || (wantsDocument && has(q, "рейтинг", "оценк", "балл"))) {
+    // «за всё время», «за все годы», «за весь период обучения» — выписка по всем триместрам.
+    const allTime = has(q, "все время", "все годы", "весь период", "все триместр", "за все", "за весь", "полную", "полная");
+    add(allTime ? { kind: "document", code: "rating", period: "всё время обучения" } : { kind: "document", code: "rating" });
+  }
   if (purpose || (wantsDocument && has(q, "обучени", "учусь", "студент", "учебы", "учебе"))) add({ kind: "document", code: "study", purpose });
 
   // Пары. «Завтра» и «сегодня» важнее общего «расписание».
