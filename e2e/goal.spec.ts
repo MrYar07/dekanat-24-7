@@ -75,7 +75,8 @@ test.describe("сводка деканата", () => {
       `select count(*) as closed from requests r join document_types t on t.id = r.type_id
        where not t.instant and r.status in ('ready', 'issued')`,
     );
-    const saved = Number(instant) * 3 + Number(closed) * 2;
+    const [{ answered }] = await query<{ answered: string }>("select count(*) as answered from questions where status = 'answered'");
+    const saved = Number(instant) * 3 + Number(closed) * 2 + Number(answered);
 
     await login(page, "dean");
     const link = page.getByRole("link", { name: /Походов в деканат не понадобилось/ });
@@ -87,6 +88,7 @@ test.describe("сводка деканата", () => {
     await expect(tiles).toContainText(`Походов в деканат не понадобилось${saved}`);
     await expect(tiles).toContainText(`Справок выдано сразу${Number(instant)}`);
     await expect(page.getByRole("list", { name: "Заявки по видам документов" }).getByRole("listitem").first()).toBeVisible();
+    await expect(page.getByRole("region", { name: "Вопросы студентов" })).toContainText(`Отвечено${answered}`);
   });
 
   test("сводка закрыта для преподавателя и студента", async ({ page, browser }) => {

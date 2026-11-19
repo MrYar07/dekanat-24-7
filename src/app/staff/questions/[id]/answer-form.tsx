@@ -1,13 +1,30 @@
 "use client";
 
-import { startTransition, useActionState } from "react";
+import { startTransition, useActionState, useRef } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ANSWER_MAX } from "@/lib/questions";
+import { ANSWER_MAX, templatesFor } from "@/lib/questions";
 import type { AnswerFormState } from "../actions";
 
-export function AnswerForm({ action }: { action: (prev: AnswerFormState, form: FormData) => Promise<AnswerFormState> }) {
+export function AnswerForm({
+  action,
+  topic,
+}: {
+  action: (prev: AnswerFormState, form: FormData) => Promise<AnswerFormState>;
+  topic: string;
+}) {
   const [state, formAction, pending] = useActionState(action, {});
+  const field = useRef<HTMLTextAreaElement>(null);
+
+  // Готовый ответ встаёт в поле — пустое заменяет, к начатому добавляется новым абзацем. Дальше его можно править.
+  function insert(text: string) {
+    const el = field.current;
+    if (!el) return;
+    const current = el.value.trim();
+    el.value = (current ? `${current}\n\n${text}` : text).slice(0, ANSWER_MAX);
+    el.focus();
+    el.setSelectionRange(el.value.length, el.value.length);
+  }
 
   return (
     <form
@@ -26,6 +43,7 @@ export function AnswerForm({ action }: { action: (prev: AnswerFormState, form: F
           Ответ студенту
         </label>
         <textarea
+          ref={field}
           id="answer-text"
           name="answer"
           rows={6}
@@ -38,6 +56,26 @@ export function AnswerForm({ action }: { action: (prev: AnswerFormState, form: F
         <p id="answer-text-hint" className="text-muted mt-1 text-sm">
           Студент получит уведомление с началом ответа. Отправленный ответ не меняется: уточнение — следующим вопросом.
         </p>
+      </div>
+
+      <div role="group" aria-labelledby="templates-title">
+        <p id="templates-title" className="text-sm font-medium">
+          Готовые ответы
+        </p>
+        <p className="text-muted text-sm">Вставляются в поле — перед отправкой их можно поправить.</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {templatesFor(topic).map((t) => (
+            <button
+              key={t.label}
+              type="button"
+              onClick={() => insert(t.text)}
+              aria-label={`Вставить готовый ответ: ${t.label}`}
+              className="border-border bg-surface hover:bg-surface-2 rounded-full border px-3 py-1.5 text-sm transition-colors duration-150"
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {state.error && (

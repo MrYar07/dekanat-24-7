@@ -5,7 +5,7 @@ import { RankBars } from "@/components/charts/rank-bars";
 import { Card } from "@/components/ui/card";
 import { Ledger, LedgerRow } from "@/components/ui/ledger";
 import { PageTitle, SectionTitle } from "@/components/ui/typography";
-import { getDeanStats, VISITS_SAVED_INSTANT, VISITS_SAVED_REQUEST } from "@/lib/data/staff/dean-stats";
+import { getDeanStats, VISITS_SAVED_INSTANT, VISITS_SAVED_QUESTION, VISITS_SAVED_REQUEST } from "@/lib/data/staff/dean-stats";
 import { MIN_RESPONSES } from "@/lib/feedback";
 
 export const metadata: Metadata = { title: "Сводка" };
@@ -18,6 +18,9 @@ function duration(hours: number) {
   if (hours < 48) return `${Math.round(hours)} ч`;
   return `${Math.round(hours / 24)} дн.`;
 }
+
+/** Точка в конце фразы — если её уже не поставило сокращение «дн.». */
+const sentence = (text: string) => (text.endsWith(".") ? text : `${text}.`);
 
 function Tile({ label, value, note }: { label: string; value: string; note: string }) {
   return (
@@ -47,13 +50,13 @@ export default async function DeanStatsPage() {
         <Tile
           label="Походов в деканат не понадобилось"
           value={whole.format(s.visitsSaved)}
-          note={`По ${VISITS_SAVED_INSTANT} за справку, выданную сразу, и по ${VISITS_SAVED_REQUEST} за заявку с печатью.`}
+          note={`По ${VISITS_SAVED_INSTANT} за справку, выданную сразу, ${VISITS_SAVED_REQUEST} за заявку с печатью, ${VISITS_SAVED_QUESTION} за ответ на вопрос.`}
         />
         <Tile label="Справок выдано сразу" value={whole.format(s.instant)} note="PDF с QR-кодом. Сотрудник в выдаче не участвует." />
         <Tile
           label="Заявок с печатью готово"
           value={whole.format(s.closed)}
-          note={s.hoursToReady === null ? "Готовых заявок пока нет." : `От подачи до «готово» в среднем ${duration(s.hoursToReady)}.`}
+          note={s.hoursToReady === null ? "Готовых заявок пока нет." : `От подачи до «готово» в среднем ${sentence(duration(s.hoursToReady))}`}
         />
         <Tile
           label="Баллов за срезы за неделю"
@@ -115,6 +118,19 @@ export default async function DeanStatsPage() {
         </section>
 
         <div className="space-y-8">
+          <section aria-labelledby="questions-title">
+            <SectionTitle>
+              <span id="questions-title">Вопросы студентов</span>
+            </SectionTitle>
+            <Ledger>
+              <LedgerRow label="Ждут ответа" value={whole.format(s.questions.open)} />
+              <LedgerRow label="Отвечено" value={whole.format(s.questions.answered)} />
+              {s.questions.hoursToAnswer !== null && (
+                <LedgerRow label="Ответ в среднем через" value={duration(s.questions.hoursToAnswer)} />
+              )}
+            </Ledger>
+          </section>
+
           <section aria-labelledby="achievements-title">
             <SectionTitle>
               <span id="achievements-title">Достижения</span>
@@ -137,6 +153,7 @@ export default async function DeanStatsPage() {
                 одного.
               </li>
               <li>Заявка с печатью оставляет один поход — забрать готовый документ. Экономия — {VISITS_SAVED_REQUEST}.</li>
+              <li>Ответ на вопрос приходит уведомлением — не нужно идти спрашивать в окно деканата. Экономия — {VISITS_SAVED_QUESTION}.</li>
               <li>Данные вымышленные и пересоздаются каждую ночь, поэтому числа небольшие.</li>
             </ul>
           </section>

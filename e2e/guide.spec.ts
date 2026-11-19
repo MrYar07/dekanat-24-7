@@ -10,7 +10,7 @@ test.describe("путеводитель для жюри", () => {
 
     // Первый шаг — за Матвеем: путеводитель предлагает стать им и сразу открывает нужную страницу.
     const bar = page.getByRole("region", { name: "Путеводитель: текущий шаг" });
-    await expect(bar).toContainText("Сценарий 3 из 8 · шаг 1 из 3");
+    await expect(bar).toContainText("Сценарий 3 из 9 · шаг 1 из 3");
     await expect(bar).toContainText("Дальше — Матвей");
     await bar.getByRole("button", { name: "Продолжить как Матвей" }).click();
     await expect(page).toHaveURL("/requests/new/scholarship");
@@ -28,7 +28,7 @@ test.describe("путеводитель для жюри", () => {
     await bar.getByRole("button", { name: "Продолжить как Матвей" }).click();
     await expect(page).toHaveURL("/notifications");
     await bar.getByRole("button", { name: "Готово" }).click();
-    await expect(page.getByText("пройдено 1 из 8")).toBeVisible();
+    await expect(page.getByText("пройдено 1 из 9")).toBeVisible();
   });
 
   test("сценарий 7: та же страница заявки под другим студентом — «Такой страницы нет»", async ({ page }) => {

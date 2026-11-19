@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ANSWER_MAX, checkAnswer, checkQuestion, preview, QUESTION_TOPICS, TEXT_MAX } from ".";
+import { ANSWER_MAX, ANSWER_TEMPLATES, checkAnswer, checkQuestion, isQuestionTopic, preview, QUESTION_TOPICS, templatesFor, TEXT_MAX } from ".";
 
 describe("вопрос в деканат", () => {
   it("принимает тему из списка и текст, убирает лишние пробелы и пустые строки", () => {
@@ -56,5 +56,22 @@ describe("начало ответа для уведомления", () => {
     expect(p.endsWith("…")).toBe(true);
     expect(text.startsWith(p.slice(0, -1))).toBe(true);
     expect(p).not.toMatch(/[ ,]…$/);
+  });
+});
+
+describe("готовые ответы", () => {
+  it("каждый проходит проверку ответа и не обрезается в уведомлении до бессмыслицы", () => {
+    for (const t of ANSWER_TEMPLATES) {
+      expect(checkAnswer(t.text), t.label).toEqual({ ok: true, value: t.text });
+      expect(t.topics.every(isQuestionTopic), t.label).toBe(true);
+      expect(preview(t.text).length).toBeGreaterThan(60);
+    }
+  });
+
+  it("подходящие к теме — первыми, остальные не теряются", () => {
+    const list = templatesFor("Стипендия и оплата");
+    expect(list[0].label).toBe("Стипендия — в бухгалтерии");
+    expect(list).toHaveLength(ANSWER_TEMPLATES.length);
+    expect(templatesFor("Другое").map((t) => t.label)).toEqual(ANSWER_TEMPLATES.map((t) => t.label));
   });
 });

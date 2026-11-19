@@ -153,7 +153,37 @@ const now = new Date();
 const today = mskNow(now).date;
 const termStart = addDays(mondayOf(today), -56);
 const yesterday = addDays(today, -1);
-const ago = (hours: number) => new Date(now.getTime() - hours * 3_600_000);
+/** Номер зачётки одногруппника в том же формате, что у героев: «М-24-0424». Номера героев (0417, 1182) не совпадают. */
+const recordBook = (prefix: string, i: number) =>
+  `М-${prefix.slice(-2)}-${String((prefix.startsWith("ge") ? 420 : 1190) + i * 7).padStart(4, "0")}`;
+
+/**
+ * «Столько-то часов назад», но только по дневным часам 08:00–22:00 МСК: ночь пропускается.
+ * Сервер пересоздаёт данные в 04:00, и без этого уведомления и заявки «сегодня» стояли бы на 01:30.
+ * Порядок событий сохраняется, а ночные часы просто не считаются.
+ */
+const DAY_FROM = 8 * 60;
+const DAY_TO = 22 * 60;
+const MIN = 60_000;
+const awake = (() => {
+  const m = mskNow(now).minutes;
+  // Ночью отсчёт идёт от 21:47, а не от 22:00: иначе все события пришлись бы на ровные часы.
+  if (m >= DAY_TO) return now.getTime() - (m - DAY_TO + 13) * MIN;
+  if (m < DAY_FROM) return now.getTime() - (m + 24 * 60 - DAY_TO + 13) * MIN;
+  return now.getTime();
+})();
+function ago(hours: number) {
+  if (hours <= 0) return new Date(awake - hours * 60 * MIN);
+  // Разброс минут от 0 до 40, один и тот же для одинаковых hours: события одной заявки остаются одновременными.
+  let left = hours * 60 + ((Math.round(hours * 60) * 7) % 41);
+  let t = awake;
+  for (;;) {
+    const sinceMorning = mskNow(new Date(t)).minutes - DAY_FROM;
+    if (left <= sinceMorning) return new Date(t - left * MIN);
+    left -= sinceMorning;
+    t -= (sinceMorning + 24 * 60 - DAY_TO + DAY_FROM) * MIN;
+  }
+}
 
 /** Первая дата не раньше from с нужным днём недели. */
 function nextWeekday(weekday: number, from: string) {
@@ -261,7 +291,7 @@ async function main() {
         )
         .returning({ id: s.users.id });
       await tx.insert(s.studentProfiles).values(
-        rows.map((r, i) => ({ userId: r.id, groupId, recordBookNumber: `${prefix.toUpperCase()}-${String(i + 1).padStart(4, "0")}`, isPaid: i % 3 === 0 })),
+        rows.map((r, i) => ({ userId: r.id, groupId, recordBookNumber: recordBook(prefix, i), isPaid: i % 3 === 0 })),
       );
       return rows.map((r) => r.id);
     }
@@ -614,7 +644,7 @@ async function main() {
                 lastName,
                 firstName,
                 middleName,
-                recordBookNumber: `${cohort.prefix.toUpperCase()}-${String(i + 1).padStart(4, "0")}`,
+                recordBookNumber: recordBook(cohort.prefix, i),
                 faculty: cohort.faculty,
                 programCode: cohort.program.code,
                 program: cohort.program.name,

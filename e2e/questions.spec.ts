@@ -46,6 +46,12 @@ test.describe("вопрос в деканат", () => {
       // Пустой ответ не уходит.
       await dean.getByRole("button", { name: "Ответить" }).click();
       await expect(dean.getByText("Нужен текст ответа")).toBeVisible();
+      // Готовый ответ по теме стоит первым и встаёт в поле; дальше сотрудник пишет своё.
+      const templates = dean.getByRole("group", { name: "Готовые ответы" }).getByRole("button");
+      await expect(templates.first()).toHaveAccessibleName(/Решает преподаватель/);
+      await templates.first().click();
+      await expect(dean.getByLabel("Ответ студенту")).toHaveValue(/^Это решает преподаватель/);
+      await expect(dean.getByLabel("Ответ студенту")).toBeFocused();
       await dean.getByLabel("Ответ студенту").fill("Можно, если преподаватель согласен. Напиши ему и приложи причину.");
       await dean.getByRole("button", { name: "Ответить" }).click();
       await expect(dean.getByText("Ответ отправлен.")).toBeVisible();

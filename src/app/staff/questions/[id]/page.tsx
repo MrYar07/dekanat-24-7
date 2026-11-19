@@ -61,7 +61,7 @@ export default async function DeanQuestionPage({
 
           <Card aria-label="Ответ на вопрос">
             {q.status === "open" ? (
-              <AnswerForm action={answerQuestionAction.bind(null, q.id)} />
+              <AnswerForm action={answerQuestionAction.bind(null, q.id)} topic={q.topic} />
             ) : (
               <div className="space-y-2">
                 <p className="text-base whitespace-pre-line">{q.answer}</p>

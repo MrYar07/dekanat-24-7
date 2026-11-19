@@ -10,6 +10,7 @@ import {
   documentTypes,
   groups,
   issuedDocuments,
+  questions,
   requestEvents,
   requests,
   terms,
@@ -25,12 +26,14 @@ import { MIN_RESPONSES } from "@/lib/feedback";
 export const VISITS_SAVED_INSTANT = 3;
 /** Заявка с печатью: остаётся один поход — забрать готовое. */
 export const VISITS_SAVED_REQUEST = 2;
+/** Вопрос с ответом в кабинете: не понадобилось идти спрашивать в окно деканата. */
+export const VISITS_SAVED_QUESTION = 1;
 
 export async function getDeanStats(at: Date = new Date()) {
   await requireRole("dean_office");
   const weekAgo = new Date(at.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const [[issued], byType, [handled], [speed], [scores], achievementRows, feedbackRows] = await Promise.all([
+  const [[issued], byType, [handled], [speed], [scores], achievementRows, feedbackRows, questionRows] = await Promise.all([
     db.select({ n: count() }).from(issuedDocuments),
     db
       .select({ name: documentTypes.name, instant: documentTypes.instant, n: count() })
@@ -79,20 +82,37 @@ export async function getDeanStats(at: Date = new Date()) {
       .innerJoin(users, eq(users.id, courses.teacherId))
       .groupBy(disciplines.name, groups.name, users.lastName, users.firstName, users.middleName)
       .orderBy(asc(disciplines.name), asc(groups.name)),
+    // Вопросы студентов: сколько ждут, сколько отвечено и через сколько в среднем приходит ответ.
+    db
+      .select({
+        status: questions.status,
+        n: count(),
+        hours: sql<number | null>`avg(extract(epoch from (${questions.answeredAt} - ${questions.createdAt})) / 3600)`.mapWith(Number),
+      })
+      .from(questions)
+      .groupBy(questions.status),
   ]);
 
   const instant = issued?.n ?? 0;
   const closed = handled?.n ?? 0;
   const achievement = (status: "pending" | "approved" | "rejected") => achievementRows.find((r) => r.status === status);
+  const answered = questionRows.find((r) => r.status === "answered");
+  const answeredCount = answered?.n ?? 0;
 
   return {
-    visitsSaved: instant * VISITS_SAVED_INSTANT + closed * VISITS_SAVED_REQUEST,
+    visitsSaved: instant * VISITS_SAVED_INSTANT + closed * VISITS_SAVED_REQUEST + answeredCount * VISITS_SAVED_QUESTION,
     instant,
     closed,
     /** Среднее время от подачи до «готово» в часах. null — готовых заявок ещё не было. */
     hoursToReady: speed && speed.n > 0 && speed.hours !== null ? speed.hours : null,
     scoresThisWeek: scores?.n ?? 0,
     byType: byType.map((t) => ({ name: t.name, instant: t.instant, count: t.n })),
+    questions: {
+      open: questionRows.find((r) => r.status === "open")?.n ?? 0,
+      answered: answeredCount,
+      /** Среднее время от вопроса до ответа в часах. null — ответов ещё не было. */
+      hoursToAnswer: answeredCount > 0 && answered?.hours != null ? answered.hours : null,
+    },
     achievements: {
       pending: achievement("pending")?.n ?? 0,
       approved: achievement("approved")?.n ?? 0,
