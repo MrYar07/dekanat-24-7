@@ -22,7 +22,7 @@ export function Callout({
   return (
     <div className="flex gap-2.5 text-sm leading-snug">
       <Icon className={`mt-0.5 size-4 shrink-0 ${accent}`} aria-hidden="true" />
-      <p>
+      <p className="min-w-0">
         <b className={accent}>{lead}</b> {children}
       </p>
     </div>

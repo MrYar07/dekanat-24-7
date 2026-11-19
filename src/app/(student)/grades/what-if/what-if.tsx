@@ -39,7 +39,7 @@ function ScoreSlider({
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
-        <label htmlFor={id} className="text-sm font-medium">
+        <label htmlFor={id} className="min-w-0 text-sm font-medium">
           {label}
         </label>
         <output htmlFor={id} className={`shrink-0 tabular-nums ${value === null ? "text-muted text-sm" : "font-serif text-lg font-bold"}`}>
@@ -155,7 +155,7 @@ export function WhatIf({
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="a11y-one-col grid gap-4 lg:grid-cols-2">
         {courses.map((c, i) => {
           const sc = of(c.id);
           const r = result.courses[i];
@@ -168,7 +168,7 @@ export function WhatIf({
 
           return (
             <Card key={c.id} aria-labelledby={`w-${c.id}`}>
-              <div className="flex items-start justify-between gap-3">
+              <div className="a11y-stack flex items-start justify-between gap-3">
                 <h3 id={`w-${c.id}`} className="min-w-0 font-serif text-lg leading-snug font-bold">
                   {c.discipline}
                 </h3>
@@ -262,8 +262,8 @@ export function WhatIf({
         })}
 
         <Card aria-labelledby="w-activity">
-          <div className="flex items-start justify-between gap-3">
-            <h3 id="w-activity" className="font-serif text-lg leading-snug font-bold">
+          <div className="a11y-stack flex items-start justify-between gap-3">
+            <h3 id="w-activity" className="min-w-0 font-serif text-lg leading-snug font-bold">
               Бонус активности
             </h3>
             <div className="shrink-0 text-right">

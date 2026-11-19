@@ -59,7 +59,7 @@ export default async function DeanRequestPage({
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="a11y-one-col grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-6">
           <Card aria-label="Решение по заявке">
             <div className="mb-4 flex items-center justify-between gap-3">

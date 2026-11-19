@@ -29,7 +29,7 @@ export function Logo({
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <LogoMark className={tone === "cover" ? "text-cover-ink" : "text-brand"} />
-      <span className="leading-tight">
+      <span className="logo-text leading-tight">
         <span className="block font-serif text-lg font-bold tracking-[-0.01em]">Деканат 24/7</span>
         {withCaption && (
           <span className={`block font-serif text-xs italic ${tone === "cover" ? "text-cover-muted" : "text-muted"}`}>

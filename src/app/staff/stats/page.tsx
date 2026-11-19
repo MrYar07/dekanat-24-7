@@ -46,7 +46,7 @@ export default async function DeanStatsPage() {
         Сводка
       </PageTitle>
 
-      <section aria-label="Главные числа" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section aria-label="Главные числа" className="a11y-one-col grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Tile
           label="Походов в деканат не понадобилось"
           value={whole.format(s.visitsSaved)}
@@ -65,7 +65,7 @@ export default async function DeanStatsPage() {
         />
       </section>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="a11y-one-col mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section aria-labelledby="types-title">
           <SectionTitle>
             <span id="types-title">Что заказывают</span>

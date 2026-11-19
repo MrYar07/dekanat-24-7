@@ -9,7 +9,7 @@ export function CourseTabs({ courseId, active }: { courseId: string; active: "sc
     { key: "feedback", href: `/staff/courses/${courseId}/feedback`, label: "Отзывы", short: null },
   ] as const;
   return (
-    <nav aria-label="Разделы курса" className="border-border mb-5 flex gap-1 border-b">
+    <nav aria-label="Разделы курса" className="border-border mb-5 flex flex-wrap gap-x-1 border-b">
       {tabs.map((t) => (
         <Link
           key={t.key}

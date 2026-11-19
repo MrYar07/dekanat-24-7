@@ -175,7 +175,7 @@ async function TeacherCourses({ name }: { name: string }) {
           В этом триместре курсы не закреплены. Если это ошибка, сообщите в деканат.
         </EmptyState>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="a11y-one-col grid gap-3 sm:grid-cols-2">
           {courses.map((c) => (
             <li key={c.id} className="border-border bg-surface flex flex-col overflow-hidden rounded-xl border">
               <Link href={`/staff/courses/${c.id}`} className="hover:bg-surface-2 flex flex-1 items-center gap-3 p-4">

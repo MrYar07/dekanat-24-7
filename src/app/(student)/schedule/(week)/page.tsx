@@ -111,7 +111,7 @@ export default async function SchedulePage({ searchParams }: { searchParams: Pro
             <div className="mb-1 flex items-center gap-3">
               <h2
                 id={`day-${d.date}`}
-                className={`shrink-0 text-sm font-semibold ${d.isToday ? "text-brand" : d.isPast ? "text-muted" : ""}`}
+                className={`min-w-0 text-sm font-semibold ${d.isToday ? "text-brand" : d.isPast ? "text-muted" : ""}`}
               >
                 <span className="capitalize">{formatWeekday(d.date)}</span>, {formatDay(d.date)}
               </h2>

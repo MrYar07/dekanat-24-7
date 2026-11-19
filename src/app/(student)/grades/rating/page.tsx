@@ -45,7 +45,7 @@ function Part({ name, weight, share, detail }: { name: string; weight: number; s
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3 text-sm">
-        <p className="font-medium">
+        <p className="min-w-0 font-medium">
           {name} <span className="text-muted font-normal">· {pct(weight)}</span>
         </p>
         <p className="shrink-0 tabular-nums">
@@ -139,7 +139,7 @@ export default async function RatingBreakdownPage() {
       {/* Итог одной строкой: средний балл + бонус = рейтинг. */}
       <Card aria-label="Итог" className="mb-8">
         {/* Сложение столбиком, как в ведомости: на телефоне знаки не «повисают» между строками. */}
-        <dl className="grid w-fit grid-cols-[auto_auto_1fr] items-baseline gap-x-3 gap-y-1.5">
+        <dl className="sum-grid grid w-fit grid-cols-[auto_auto_1fr] items-baseline gap-x-3 gap-y-1.5">
           <span aria-hidden="true" />
           <dd className="text-right font-serif text-2xl font-bold tabular-nums">{one.format(r.base)}</dd>
           <dt className="text-muted text-sm">
@@ -151,7 +151,7 @@ export default async function RatingBreakdownPage() {
           <dd className="text-right font-serif text-2xl font-bold tabular-nums">{one.format(r.bonus)}</dd>
           <dt className="text-muted text-sm">бонус активности</dt>
           <span aria-hidden="true" className="border-text col-span-2 border-t-2" />
-          <span aria-hidden="true" />
+          <span aria-hidden="true" className="sum-filler" />
           <span className="text-muted font-serif text-xl" aria-label="равно">
             =
           </span>
@@ -175,10 +175,10 @@ export default async function RatingBreakdownPage() {
           {pct(s.weights.session)}, вовлечённость — {pct(s.weights.engagement)}. Полоса показывает, сколько взято из
           возможного в каждой части.
         </p>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="a11y-one-col grid gap-4 lg:grid-cols-2">
           {rows.map(({ c, b }) => (
             <Card key={c.id} aria-labelledby={`d-${c.id}`}>
-              <div className="flex items-start justify-between gap-3">
+              <div className="a11y-stack flex items-start justify-between gap-3">
                 <h3 id={`d-${c.id}`} className="min-w-0 font-serif text-lg leading-snug font-bold">
                   {c.discipline}
                 </h3>
@@ -284,7 +284,7 @@ export default async function RatingBreakdownPage() {
             </div>
           </Card>
         )}
-        <ul className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+        <ul className="a11y-one-col grid grid-cols-2 gap-3 lg:grid-cols-3">
           {rows.map(({ c }) => {
             const graded = c.checkpoints.filter((cp) => cp.score !== null);
             const delta = graded.length > 1 ? graded.at(-1)!.score! - graded[0].score! : null;

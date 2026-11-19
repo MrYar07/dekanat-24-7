@@ -41,7 +41,7 @@ export function ResultsForm({
     >
       <ul className="border-border bg-surface divide-border divide-y overflow-hidden rounded-xl border">
         {students.map((s, i) => (
-          <li key={s.id} className="px-4 py-3 lg:flex lg:items-center lg:gap-4">
+          <li key={s.id} className="att-row px-4 py-3 lg:flex lg:items-center lg:gap-4">
             <div className="flex min-w-0 flex-1 items-baseline gap-3">
               <span className="text-muted w-5 shrink-0 text-right text-xs tabular-nums">{i + 1}</span>
               <span className="min-w-0">
@@ -71,7 +71,7 @@ export function ResultsForm({
               </div>
               <fieldset>
                 <legend className="text-muted text-xs">Бонус</legend>
-                <div className="mt-1 flex gap-1">
+                <div className="mt-1 flex flex-wrap gap-1">
                   {bonuses.map((b) => (
                     <label
                       key={b}

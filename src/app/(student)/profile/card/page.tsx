@@ -37,7 +37,7 @@ export default async function StudentCardPage() {
           </div>
         </div>
 
-        <div className="relative mt-5 flex items-center gap-4">
+        <div className="a11y-stack relative mt-5 flex items-center gap-4">
           <span
             aria-hidden="true"
             className="border-cover-ink flex size-16 shrink-0 items-center justify-center rounded-full border-2 font-serif text-xl font-bold"
@@ -57,7 +57,7 @@ export default async function StudentCardPage() {
           <CardQr initial={code} />
         </div>
 
-        <dl className="relative mt-5 grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+        <dl className="a11y-one-col relative mt-5 grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
           <div className="col-span-2">
             <dt className="text-cover-muted text-xs">Факультет</dt>
             <dd>{c.faculty}</dd>

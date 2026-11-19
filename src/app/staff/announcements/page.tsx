@@ -19,7 +19,7 @@ export default async function AnnouncementsPage() {
         Объявления
       </PageTitle>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+      <div className="a11y-one-col grid gap-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
         <Card aria-label="Новое объявление" className="h-fit">
           <AnnouncementForm action={publishAnnouncementAction} groups={groups} titleMax={TITLE_MAX} bodyMax={BODY_MAX} />
         </Card>

@@ -50,7 +50,7 @@ export default async function DeanQuestionPage({
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="a11y-one-col grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-6">
           <section aria-labelledby="question-title">
             <SectionTitle action={<QuestionStatusBadge status={q.status} />}>

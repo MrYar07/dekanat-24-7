@@ -16,7 +16,7 @@ export function StandingCard({ s, course }: { s: Standing; course: number }) {
   const max = Math.max(...s.bins.map((b) => b.count));
   return (
     <Card>
-      <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] sm:items-end">
+      <div className="a11y-one-col grid gap-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)] sm:items-end">
         <div>
           <p className="font-serif text-[2.5rem] leading-none font-bold tabular-nums">
             {s.place}-е <span className="text-2xl">место</span>

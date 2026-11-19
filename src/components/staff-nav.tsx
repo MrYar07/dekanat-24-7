@@ -21,7 +21,7 @@ export function DeanNav() {
 
   return (
     <nav aria-label="Разделы кабинета" className="border-border -mx-4 mb-6 border-b px-4 md:mx-0 md:px-0">
-      <ul className="flex gap-1">
+      <ul className="flex flex-wrap gap-x-1">
         {DEAN_NAV.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
           return (

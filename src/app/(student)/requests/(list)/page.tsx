@@ -19,7 +19,7 @@ export default async function RequestsPage() {
         Справки
       </PageTitle>
 
-      <div className="grid gap-x-8 gap-y-8 lg:grid-cols-2">
+      <div className="a11y-one-col grid gap-x-8 gap-y-8 lg:grid-cols-2">
         <section aria-labelledby="catalog-title">
           <SectionTitle>
             <span id="catalog-title">Заказать</span>

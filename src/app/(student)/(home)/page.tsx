@@ -71,7 +71,7 @@ export default async function TodayPage() {
         {greeting(t.now.minutes)}, {t.firstName}.
       </PageTitle>
 
-      <div className="grid gap-x-6 gap-y-8 sm:grid-cols-2">
+      <div className="a11y-one-col grid gap-x-6 gap-y-8 sm:grid-cols-2">
         <section className="sm:col-span-2">
           <SectionTitle action={<MoreLink href="/schedule">Неделя</MoreLink>}>
             {day && !day.isToday ? `Дальше по расписанию · ${relativeDay(day.date, today)}` : "Дальше по расписанию"}
@@ -81,7 +81,7 @@ export default async function TodayPage() {
               Если что-то изменится, перенос появится здесь и в уведомлениях.
             </EmptyState>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+            <div className="a11y-one-col grid gap-4 sm:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
               <Card aria-label="Ближайшая пара" className="self-start">
                 <p className="text-muted font-serif text-sm italic">
                   {day.current === focus ? (
@@ -245,7 +245,7 @@ export default async function TodayPage() {
               Новости деканата и напоминания о сроках будут здесь.
             </EmptyState>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="a11y-one-col grid gap-4 sm:grid-cols-2">
               {t.announcements.map((a) => (
                 <Callout key={a.id} tone="announcement" lead={sentence(a.title)}>
                   {a.body}

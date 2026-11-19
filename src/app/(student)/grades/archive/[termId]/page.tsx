@@ -69,13 +69,13 @@ export default async function ArchivedTermPage({ params }: { params: Promise<{ t
         <SectionTitle>
           <span id="archived-courses">Дисциплины</span>
         </SectionTitle>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="a11y-one-col grid gap-4 lg:grid-cols-2">
           {t.courses.map((c) => {
             const session = sessionText(c, s);
             const retake = c.retakes > 0;
             return (
               <Card key={c.id} aria-labelledby={`ac-${c.id}`}>
-                <div className="flex items-start justify-between gap-3">
+                <div className="a11y-stack flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 id={`ac-${c.id}`} className="font-serif text-lg leading-snug font-bold break-words hyphens-auto">
                       {c.discipline}

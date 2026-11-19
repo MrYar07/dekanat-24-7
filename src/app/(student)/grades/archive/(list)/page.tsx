@@ -91,7 +91,7 @@ export default async function ArchivePage() {
                 <span id={`year-${y.academicYear}`}>{`${y.academicYear} учебный год · ${y.course}-й курс`}</span>
               </SectionTitle>
               <Card>
-                <div className="grid gap-5 sm:grid-cols-[minmax(0,1fr)_14rem] sm:items-start">
+                <div className="a11y-one-col grid gap-5 sm:grid-cols-[minmax(0,1fr)_14rem] sm:items-start">
                   <div>
                     <p className="text-muted text-sm">{y.complete ? "Годовой рейтинг" : "Годовой рейтинг, прогноз"}</p>
                     <p className="font-serif text-[2.5rem] leading-none font-bold tabular-nums" aria-label={`Годовой рейтинг ${y.academicYear}`}>

@@ -50,7 +50,7 @@ export default async function OrderPage({
         {type.name}
       </PageTitle>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="a11y-one-col grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <Card>
           <OrderForm
             action={orderAction.bind(null, code)}

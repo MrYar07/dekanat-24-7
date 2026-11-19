@@ -226,7 +226,7 @@ html[data-spacing="wide"] body * {
 
 /* Крупный шрифт на узком экране: длинное слово переносится, а не раздвигает страницу вбок. */
 html[data-a11y] body {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   hyphens: auto;
 }
 html[data-a11y] body .whitespace-nowrap {
@@ -252,6 +252,119 @@ html[data-a11y] .nav-label {
 /* На вкладку ~70 px: при «очень крупном» подпись остаётся на уровне «крупного», рядом большой значок. */
 html[data-font="xl"] .nav-label {
   font-size: 0.5625rem;
+}
+
+/* Фильтры не прячутся за краем экрана, а переходят на новую строку. */
+html[data-a11y] .chips {
+  flex-wrap: wrap;
+  overflow-x: visible;
+}
+html[data-a11y] .chips > * {
+  flex-shrink: 1;
+}
+/* Шапка телефона при крупном шрифте: название не помещается рядом с четырьмя значками, остаётся знак. */
+@media (max-width: 479px) {
+  html[data-font="lg"] header.cover .logo-text,
+  html[data-font="xl"] header.cover .logo-text {
+    display: none;
+  }
+  /* Название дисциплины и балл рядом не помещаются: балл уходит под название, слово не рвётся. */
+  html[data-font="lg"] .a11y-stack,
+  html[data-font="xl"] .a11y-stack {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  html[data-font="lg"] .a11y-stack > *,
+  html[data-font="xl"] .a11y-stack > * {
+    text-align: left;
+  }
+  /* Сложение в рейтинге: подпись уходит под число, столбик чисел остаётся ровным. */
+  html[data-font="lg"] .sum-grid,
+  html[data-font="xl"] .sum-grid {
+    grid-template-columns: auto auto;
+  }
+  html[data-font="lg"] .sum-grid > dt,
+  html[data-font="xl"] .sum-grid > dt {
+    grid-column: 2;
+    text-align: right;
+  }
+  html[data-font="lg"] .sum-filler,
+  html[data-font="xl"] .sum-filler {
+    display: none;
+  }
+  /* Журнал баллов: поле уходит под фамилию, фамилия занимает всю строку. */
+  html[data-font="lg"] .score-row,
+  html[data-font="xl"] .score-row {
+    flex-wrap: wrap;
+  }
+  html[data-font="lg"] .score-row > label,
+  html[data-font="xl"] .score-row > label {
+    flex-basis: calc(100% - 2rem);
+  }
+  html[data-font="lg"] .score-row > input,
+  html[data-font="xl"] .score-row > input {
+    margin-left: 2rem;
+  }
+}
+
+/* Плитки и пары полей по две в ряд встают по одной, отметки и баллы в журнале уходят под фамилию.
+   Граница сдвигается вместе со шрифтом: при 125% — до 1280 px, при 150% — до 1536 px (как 1024 px при обычном). */
+@media (max-width: 1279px) {
+  html[data-font="lg"] .a11y-one-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-font="lg"] .a11y-one-col > * {
+    grid-column: auto;
+  }
+  html[data-font="lg"] .att-row {
+    display: block;
+  }
+  html[data-font="lg"] .att-row > :last-child {
+    margin-top: 0.5rem;
+    padding-left: 2rem;
+  }
+  html[data-font="lg"] .att-row > fieldset {
+    display: grid;
+  }
+}
+@media (max-width: 1535px) {
+  html[data-font="xl"] .a11y-one-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-font="xl"] .a11y-one-col > * {
+    grid-column: auto;
+  }
+  html[data-font="xl"] .att-row {
+    display: block;
+  }
+  html[data-font="xl"] .att-row > :last-child {
+    margin-top: 0.5rem;
+    padding-left: 2rem;
+  }
+  html[data-font="xl"] .att-row > fieldset {
+    display: grid;
+  }
+}
+/* Планшет при крупном шрифте: обложка 16rem и поля 2.5rem съедают половину экрана — сужаем их. */
+@media (min-width: 768px) and (max-width: 1279px) {
+  html[data-font="lg"] aside.cover,
+  html[data-font="xl"] aside.cover {
+    width: 12.5rem;
+  }
+  html[data-font="lg"] .md\:px-10,
+  html[data-font="xl"] .md\:px-10 {
+    padding-inline: 1.25rem;
+  }
+}
+
+/* Телефон при крупном шрифте: три кнопки отметки в треть ширины не помещаются — переносятся по словам. */
+@media (max-width: 479px) {
+  html[data-font="lg"] .att-row > fieldset,
+  html[data-font="xl"] .att-row > fieldset {
+    display: flex;
+    flex-wrap: wrap;
+  }
 }
 
 /* Ячейка сетки не шире самой сетки, даже если внутри длинное слово. */

@@ -129,9 +129,9 @@ export default async function GoalPage({ searchParams }: { searchParams: Promise
         </FilterChips>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="a11y-one-col grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Card aria-label="Цель" className="self-start">
-          <div className="flex items-start justify-between gap-3">
+          <div className="a11y-stack flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-muted font-serif text-sm italic">цель</p>
               <p className="mt-1 font-serif text-xl leading-snug font-bold">{goal.label[0].toUpperCase() + goal.label.slice(1)}</p>
@@ -225,12 +225,12 @@ export default async function GoalPage({ searchParams }: { searchParams: Promise
           ) : (
             <p className="text-muted text-sm">Каждого из них хватает в одиночку, если остальное останется как сейчас. От лёгкого к трудному.</p>
           )}
-          <ul className="mt-3 grid gap-3 lg:grid-cols-2">
+          <ul className="a11y-one-col mt-3 grid gap-3 lg:grid-cols-2">
             {(alone.length > 0 ? alone.slice(0, 6) : partial).map((o, i) => {
               const v = option(o);
               return (
                 <li key={i} className="border-border bg-surface rounded-xl border p-3.5">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="a11y-stack flex items-start justify-between gap-3">
                     <p className="min-w-0 font-semibold">{v.title}</p>
                     {o.reaches && v.badge && (
                       <span className="shrink-0">

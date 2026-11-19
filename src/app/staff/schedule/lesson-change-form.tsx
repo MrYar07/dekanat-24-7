@@ -87,7 +87,7 @@ export function LessonChangeForm({
       </fieldset>
 
       {kind === "moved" && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="a11y-one-col grid grid-cols-2 gap-3">
           <TextField id={`date-${formId}`} label="Новая дата" name="newDate" type="date" min={minDate} max={maxDate} defaultValue={gridDate} required />
           <div>
             <label htmlFor={`start-${formId}`} className="block text-sm font-medium">

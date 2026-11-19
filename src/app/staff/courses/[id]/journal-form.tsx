@@ -62,7 +62,7 @@ export function JournalForm({
     >
       <ul className="border-border bg-surface divide-border divide-y overflow-hidden rounded-xl border">
         {students.map((s, i) => (
-          <li key={s.id} className="flex items-center gap-3 px-4 py-2.5">
+          <li key={s.id} className="score-row flex items-center gap-3 px-4 py-2.5">
             <span className="text-muted w-5 shrink-0 text-right text-xs tabular-nums">{i + 1}</span>
             <label htmlFor={`score-${s.id}`} className="min-w-0 flex-1">
               <span className="block leading-snug font-medium">{s.name}</span>

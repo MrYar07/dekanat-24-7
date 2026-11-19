@@ -1,11 +1,14 @@
 import Link from "next/link";
 
-/** Ряд фильтров-ссылок. На телефоне прокручивается вбок без полосы прокрутки. relative — чтобы скрытый текст счётчика (sr-only) не раздвигал страницу. */
-export function FilterChips({ label, children }: { label: string; children: React.ReactNode }) {
+/**
+ * Ряд фильтров-ссылок. На телефоне прокручивается вбок без полосы прокрутки. relative — чтобы скрытый текст счётчика (sr-only) не раздвигал страницу.
+ * В версии для слабовидящих короткий ряд переносится на новые строки; long — длинный ряд (все пары триместра) остаётся лентой.
+ */
+export function FilterChips({ label, long = false, children }: { label: string; long?: boolean; children: React.ReactNode }) {
   return (
     <nav
       aria-label={label}
-      className="relative -mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden"
+      className={`${long ? "" : "chips "}relative -mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden`}
     >
       {children}
     </nav>

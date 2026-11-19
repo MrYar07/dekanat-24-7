@@ -281,7 +281,7 @@ async function RatingAnswer() {
     <Card>
       <p className="text-muted text-sm">Рейтинг триместра{r.forecast ? " — прогноз до сессии" : ""}</p>
       <p className="mt-1 text-4xl font-bold tabular-nums">{num.format(r.rating)}</p>
-      <dl className="mt-3 grid gap-1 text-sm sm:grid-cols-2">
+      <dl className="a11y-one-col mt-3 grid gap-1 text-sm sm:grid-cols-2">
         <div className="flex gap-2">
           <dt className="text-muted">Средний балл по дисциплинам</dt>
           <dd className="ml-auto font-semibold tabular-nums">{num.format(r.base)}</dd>

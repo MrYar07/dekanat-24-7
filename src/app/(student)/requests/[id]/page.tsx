@@ -73,7 +73,7 @@ export default async function RequestPage({
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="a11y-one-col grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <div className="space-y-6">
           {doc && url && (
             <Card aria-label="Документ" className="relative mt-6">

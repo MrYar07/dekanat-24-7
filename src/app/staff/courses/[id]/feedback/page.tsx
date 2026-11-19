@@ -53,7 +53,7 @@ export default async function CourseFeedbackPage({ params }: { params: Promise<{
                 {summary.count} {answers(summary.count)} из {students}
               </span>
             </SectionTitle>
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="a11y-one-col grid gap-4 md:grid-cols-3">
               {summary.questions.map((q) => {
                 const max = Math.max(...q.distribution, 1);
                 return (

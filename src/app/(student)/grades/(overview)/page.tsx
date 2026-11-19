@@ -66,7 +66,7 @@ function CourseCard({ c, s, week }: { c: Course; s: GradingSettings; week: numbe
   const att = c.attendance;
   return (
     <Card aria-labelledby={`course-${c.id}`}>
-      <div className="flex items-start justify-between gap-3">
+      <div className="a11y-stack flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 id={`course-${c.id}`} className="font-serif text-lg leading-snug font-bold break-words hyphens-auto">
             {c.discipline}
@@ -175,7 +175,7 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
       </PageTitle>
 
       {r && (
-        <section className="mb-8 grid gap-6 sm:grid-cols-2" aria-label="Рейтинг">
+        <section className="a11y-one-col mb-8 grid gap-6 sm:grid-cols-2" aria-label="Рейтинг">
           <Card>
             <p className="text-muted font-serif text-sm italic">
               Рейтинг триместра{r.forecast && " · прогноз"}
@@ -276,7 +276,7 @@ export default async function GradesPage({ searchParams }: { searchParams: Promi
             Внимания {attention === 1 ? "требует" : "требуют"} {attention} из {g.courses.length}: причина написана в карточке.
           </p>
         )}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="a11y-one-col grid grid-cols-1 gap-4 lg:grid-cols-2">
           {g.courses.map((c) => (
             <CourseCard key={c.id} c={c} s={s} week={g.term!.week} />
           ))}

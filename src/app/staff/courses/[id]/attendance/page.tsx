@@ -53,7 +53,7 @@ export default async function CourseAttendancePage({
       ) : (
         <>
           <div className="mb-5">
-            <FilterChips label="Пара">
+            <FilterChips label="Пара" long>
               {lessons.map((l, i) => (
                 <FilterChip
                   key={l.key}
