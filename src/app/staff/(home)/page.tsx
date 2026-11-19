@@ -89,7 +89,9 @@ async function DeanQueue({ filter }: { filter: QueueFilter }) {
               <li key={r.id}>
                 <Link href={`/staff/questions/${r.id}`} className="hover:bg-surface-2 flex items-center gap-3 px-4 py-3.5">
                   <span className="min-w-0 flex-1">
-                    <span className="block font-semibold">{r.preview}</span>
+                    {/* Заголовок — тема, как тип у заявки; сам вопрос — строкой ниже, обычным начертанием. */}
+                    <span className="block font-semibold">{r.topic}</span>
+                    <span className="mt-0.5 line-clamp-2 block text-sm">{r.preview}</span>
                     <span className="text-muted mt-0.5 block text-sm">
                       {r.student} · {r.group}
                     </span>
@@ -99,9 +101,7 @@ async function DeanQueue({ filter }: { filter: QueueFilter }) {
                         <MessageCircleQuestion className="size-3.5" aria-hidden="true" />
                         вопрос
                       </span>
-                      <span>
-                        {r.topic} · {day.format(r.createdAt)}
-                      </span>
+                      <span>задан {day.format(r.createdAt)}</span>
                     </span>
                   </span>
                   <ChevronRight className="text-muted size-5 shrink-0" aria-hidden="true" />

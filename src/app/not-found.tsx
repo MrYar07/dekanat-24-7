@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { buttonClass } from "@/components/ui/button";
+
+// Заголовок вкладки для адреса, которого нет. Страница, сама вызвавшая notFound(), оставляет свой.
+export const metadata: Metadata = { title: "Такой страницы нет" };
 
 export default function NotFound() {
   return (

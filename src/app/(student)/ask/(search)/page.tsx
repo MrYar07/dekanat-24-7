@@ -42,7 +42,7 @@ export default async function AskPage({ searchParams }: { searchParams: Promise<
           type="search"
           defaultValue={q}
           maxLength={MAX_QUESTION}
-          placeholder="Например: справка в военкомат"
+          placeholder="Например, справка в банк"
           autoComplete="off"
           enterKeyHint="search"
           className="border-border-strong bg-surface focus:border-brand min-w-0 flex-1 rounded-lg border px-3.5 py-3 text-base"

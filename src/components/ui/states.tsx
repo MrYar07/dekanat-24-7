@@ -44,5 +44,5 @@ export function ErrorState({
 
 /** Заглушка на время загрузки. */
 export function Skeleton({ className = "" }: { className?: string }) {
-  return <div aria-hidden="true" className={`bg-surface-2 animate-pulse rounded-md ${className}`} />;
+  return <div aria-hidden="true" className={`bg-surface-2 motion-safe:animate-pulse rounded-md ${className}`} />;
 }
