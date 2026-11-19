@@ -91,6 +91,7 @@ export async function getQuestionForDean(questionId: string) {
       recordBook: studentProfiles.recordBookNumber,
       staffLast: staff.lastName,
       staffFirst: staff.firstName,
+      staffMiddle: staff.middleName,
     })
     .from(questions)
     .innerJoin(users, eq(users.id, questions.studentId))
@@ -109,12 +110,13 @@ export async function getQuestionForDean(questionId: string) {
     .limit(5);
 
   // id студента наружу не отдаём: странице он не нужен.
-  const { staffLast, staffFirst, ...rest } = q;
+  const { staffLast, staffFirst, staffMiddle, ...rest } = q;
   delete (rest as Partial<typeof rest>).studentId;
   return {
     ...rest,
     student: studentName(q),
-    answeredBy: staffLast && staffFirst ? `${staffLast} ${staffFirst[0]}.` : null,
+    // «Громов Д. П.» — как в шапке кабинета сотрудника.
+    answeredBy: staffLast && staffFirst ? `${staffLast} ${staffFirst[0]}.${staffMiddle ? ` ${staffMiddle[0]}.` : ""}` : null,
     earlier: earlier.map((e) => ({ ...e, preview: preview(e.text, 90) })),
   };
 }

@@ -5,7 +5,7 @@
 //
 // Запуск: npm run build, затем SITE_URL=<адрес прода> npx next start -p 3100,
 // затем npx tsx scripts/record-demo.ts <папка для роликов>. После записи — npm run db:seed:
-// сценарий меняет локальную базу (справка, балл, объявление).
+// сценарий меняет локальную базу (справка, балл, объявление, вопрос в деканат).
 // Пароль тестовых аккаунтов — из .env, в коде его нет.
 import "dotenv/config";
 import { mkdirSync, writeFileSync } from "node:fs";
@@ -145,6 +145,7 @@ async function main() {
   mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch({ channel: "chrome" });
   const announcement = "Консультация перед третьим срезом";
+  const question = "можно ли сдать курсовую позже";
   let studyRequest = "";
 
   // 1. Студент с телефона: вход, «Сегодня», расписание, оценки, справка за минуту, уведомления.
@@ -175,7 +176,7 @@ async function main() {
     cap("«Спроси деканат»: вопрос своими словами — ответ из своих данных или готовая форма");
     await tap(page, page.getByRole("link", { name: "Спроси деканат" }).filter({ visible: true }).first());
     await settle(page);
-    await type(page, page.getByLabel("Вопрос"), "нужна справка в военкомат");
+    await type(page, page.getByLabel("Вопрос", { exact: true }), "нужна справка в военкомат");
     await tap(page, page.getByRole("button", { name: "Спросить" }));
     await settle(page);
     await pause(page, 1500);
@@ -247,11 +248,55 @@ async function main() {
     await pause(page, 1500);
     await tap(page, page.getByRole("link", { name: /Уведомления/ }).filter({ visible: true }).first());
     await settle(page);
+    await pause(page, 2500);
+
+    cap("Чего нет в данных, кабинет не выдумывает: вопрос можно отправить сотруднику деканата");
+    await tap(page, page.getByRole("link", { name: "Спроси деканат" }).filter({ visible: true }).first());
+    await settle(page);
+    await type(page, page.getByLabel("Вопрос", { exact: true }), question);
+    await tap(page, page.getByRole("button", { name: "Спросить" }));
+    await settle(page);
+    await pause(page, 1500);
+    await tap(page, page.getByRole("link", { name: "Написать в деканат" }));
+    await settle(page);
+    await page.getByLabel("Тема").selectOption("Учёба и оценки");
+    await pause(page, 800);
+    await tap(page, page.getByRole("button", { name: "Отправить в деканат" }));
+    await page.waitForURL(/\/ask\/[0-9a-f-]{36}/);
+    await settle(page);
+    await pause(page, 2500);
+  });
+
+  // 5. Деканат отвечает на вопрос: готовый ответ по теме вставляется одной кнопкой.
+  await part(browser, "5-dean-answer", "desktop", async (page, cap) => {
+    await login(page, "dean", false);
+    await settle(page);
+    cap("Деканат: вопрос стоит в общей очереди вместе с заявками");
+    await pause(page, 3500);
+    await tap(page, page.getByRole("link", { name: new RegExp(question) }));
+    await settle(page);
+    cap("Готовые ответы на частые вопросы: вставить, поправить, отправить");
+    await tap(page, page.getByRole("group", { name: "Готовые ответы" }).getByRole("button").first(), 1500);
+    await tap(page, page.getByRole("button", { name: "Ответить" }));
+    await page.getByText("Ответ отправлен.").waitFor();
+    await pause(page, 2500);
+  });
+
+  // 6. Ответ приходит студентке уведомлением.
+  await part(browser, "6-student-answer", "phone", async (page, cap) => {
+    await login(page, "student1", false);
+    await settle(page);
+    cap("Ответ приходит уведомлением — идти в деканат не нужно");
+    await tap(page, page.getByRole("link", { name: /Уведомления/ }).filter({ visible: true }).first());
+    await settle(page);
+    await pause(page, 1500);
+    await tap(page, page.getByRole("link", { name: /Деканат ответил/ }).first());
+    await settle(page);
     await pause(page, 3500);
   });
 
-  // 5. Безопасность: другой студент открывает чужую справку по прямой ссылке.
-  await part(browser, "5-security", "phone", async (page, cap) => {
+  // 7. Безопасность: другой студент открывает чужую справку по прямой ссылке.
+  await part(browser, "7-security", "phone", async (page, cap) => {
     cap("Безопасность: другой студент вставляет ссылку на чужую справку…");
     await login(page, "student2", false);
     await settle(page);

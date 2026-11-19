@@ -10,7 +10,7 @@ import { buttonClass } from "@/components/ui/button";
 import { DEMO_ACCOUNTS, DEMO_LOGINS, type DemoLogin } from "@/lib/demo/accounts";
 import { advance, back, EMPTY_GUIDE, parseGuide, SCENARIOS, type GuideState, type ScenarioStep } from "@/lib/demo/scenarios";
 
-// Путеводитель для жюри: переключение между демо-аккаунтами и восемь сценариев по шагам.
+// Путеводитель для жюри: переключение между демо-аккаунтами и сценарии по шагам.
 // Прогресс лежит в localStorage браузера: он переживает переключение аккаунта и на сервер не уходит.
 
 const KEY = "d247_guide";
@@ -239,7 +239,7 @@ export function DemoGuide({ me }: { me: DemoLogin }) {
             </button>
           </div>
           <p className="text-muted mt-1 text-sm">
-            Восемь сценариев показывают кабинет целиком. Данные сбрасываются каждую ночь, так что ломать не страшно.
+            Сценарии ниже показывают кабинет целиком. Данные сбрасываются каждую ночь, так что ломать не страшно.
           </p>
 
           <h3 className="text-muted mt-5 mb-2 text-[0.8125rem] font-semibold">Смотреть как</h3>

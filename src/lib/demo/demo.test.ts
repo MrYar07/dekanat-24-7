@@ -21,7 +21,7 @@ describe("демо-аккаунты", () => {
 });
 
 describe("сценарии путеводителя", () => {
-  it("их восемь, как в PRD, и у каждого есть шаги", () => {
+  it("их девять, как в PRD, и у каждого есть шаги", () => {
     expect(SCENARIOS).toHaveLength(9);
     for (const sc of SCENARIOS) expect(sc.steps.length, sc.title).toBeGreaterThan(0);
   });
