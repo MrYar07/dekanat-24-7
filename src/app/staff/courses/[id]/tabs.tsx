@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ActiveMark } from "@/components/page-transition";
 
 /** Разделы курса: баллы за срезы, посещаемость, активность с бонусом и анонимные отзывы студентов. */
 export function CourseTabs({ courseId, active }: { courseId: string; active: "scores" | "attendance" | "results" | "feedback" }) {
@@ -15,10 +16,11 @@ export function CourseTabs({ courseId, active }: { courseId: string; active: "sc
           key={t.key}
           href={t.href}
           aria-current={t.key === active ? "page" : undefined}
-          className={`-mb-px border-b-2 px-3 py-2 text-sm whitespace-nowrap ${
-            t.key === active ? "border-brand text-brand font-semibold" : "text-muted hover:text-text border-transparent"
+          className={`relative -mb-px border-b-2 border-transparent px-3 py-2 text-sm whitespace-nowrap ${
+            t.key === active ? "text-brand font-semibold" : "text-muted hover:text-text"
           }`}
         >
+          {t.key === active && <ActiveMark name="course-tab" className="bg-brand absolute inset-x-0 -bottom-0.5 h-0.5" />}
           {/* На телефоне три вкладки в одну строку: длинная подпись сокращается. */}
           {t.short ? (
             <>

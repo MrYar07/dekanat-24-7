@@ -4,6 +4,7 @@ import { Cover, CoverBar } from "@/components/cover";
 import { DeanNav } from "@/components/staff-nav";
 import { A11yToggle } from "@/components/a11y";
 import { ThemeToggle } from "@/components/theme";
+import { PageTransition } from "@/components/page-transition";
 import { requireRole } from "@/lib/auth/dal";
 
 const ROLE = {
@@ -43,7 +44,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
             </div>
           )}
           <main id="main" className={user.role === "dean_office" ? "" : "pt-2 md:pt-0"}>
-            {children}
+            <PageTransition>{children}</PageTransition>
           </main>
         </div>
       </div>

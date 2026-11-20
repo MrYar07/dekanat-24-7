@@ -17,6 +17,7 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react";
+import { ActiveMark } from "@/components/page-transition";
 
 // Разделы на обложке — боковой панели широкого экрана. Активный раздел выглядит как бумажная закладка:
 // она того же цвета, что страница, и доходит до края панели, будто лист выглядывает из-под обложки.
@@ -64,15 +65,18 @@ export function CoverNav({ kind, unread = 0 }: { kind: keyof typeof SETS; unread
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex items-center gap-3 rounded-l-md py-2.5 pr-5 pl-3 text-sm ${
-                  active ? "bg-bg text-text font-semibold" : "text-cover-muted hover:bg-cover-hover hover:text-cover-ink"
+                className={`nav-item relative isolate flex items-center gap-3 rounded-l-md py-2.5 pr-5 pl-3 text-sm ${
+                  active ? "text-text font-semibold" : "text-cover-muted hover:bg-cover-hover hover:text-cover-ink"
                 }`}
               >
+                {/* Закладка — отдельный слой: при переходе она переезжает на новый раздел. */}
+                {active && <ActiveMark name={`cover-tab-${kind}`} className="nav-mark bg-bg absolute inset-0 -z-10 rounded-l-md" />}
                 <Icon aria-hidden="true" className="size-5 shrink-0" strokeWidth={active ? 2.2 : 1.8} />
                 <span className="min-w-0 flex-1 truncate">{item.label}</span>
                 {count > 0 && (
                   <span
-                    className={`rounded-full px-1.5 text-xs leading-5 font-bold tabular-nums ${
+                    key={count}
+                    className={`badge-pop rounded-full px-1.5 text-xs leading-5 font-bold tabular-nums ${
                       active ? "bg-brand text-brand-ink" : "bg-cover-ink text-cover"
                     }`}
                   >

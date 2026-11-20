@@ -135,7 +135,7 @@ export function DemoGuide({ me }: { me: DemoLogin }) {
           <div aria-hidden="true" className="h-44" />
           <section
             aria-label="Путеводитель: текущий шаг"
-            className={`border-border bg-surface sheet-in fixed inset-x-3 z-30 mx-auto max-w-md rounded-xl border p-3 shadow-lg md:inset-x-auto md:right-6 md:w-96 ${lift}`}
+            className={`float-layer border-border bg-surface sheet-in fixed inset-x-3 z-30 mx-auto max-w-md rounded-xl border p-3 shadow-lg md:inset-x-auto md:right-6 md:w-96 ${lift}`}
           >
             <div className="flex items-start justify-between gap-2">
               <button type="button" onClick={() => setOpen(true)} className="min-w-0 text-left">
@@ -199,7 +199,7 @@ export function DemoGuide({ me }: { me: DemoLogin }) {
         <button
           type="button"
           onClick={() => (scenario ? write({ ...state, collapsed: false }) : setOpen(true))}
-          className={`border-border bg-surface text-text hover:bg-surface-2 fixed right-3 z-30 inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium shadow-lg md:right-6 ${lift}`}
+          className={`float-layer border-border bg-surface text-text hover:bg-surface-2 fixed right-3 z-30 inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-sm font-medium shadow-lg md:right-6 ${lift}`}
         >
           {scenario ? <ChevronUp className="text-brand size-4" aria-hidden="true" /> : <Compass className="text-brand size-4" aria-hidden="true" />}
           {scenario ? `Сценарий ${state.scenario! + 1} · шаг ${state.step + 1} из ${scenario.steps.length}` : "Путеводитель"}

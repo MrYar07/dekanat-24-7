@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ActiveMark } from "@/components/page-transition";
 import { CalendarClock, Inbox, Megaphone, type LucideIcon } from "lucide-react";
 
 const DEAN_NAV: { href: string; label: string; icon: LucideIcon }[] = [
@@ -29,10 +30,11 @@ export function DeanNav() {
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={`-mb-px flex items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-sm sm:px-3 ${
-                  active ? "border-brand text-brand font-semibold" : "text-muted hover:text-text border-transparent"
+                className={`relative -mb-px flex items-center gap-1.5 border-b-2 border-transparent px-2.5 py-2.5 text-sm sm:px-3 ${
+                  active ? "text-brand font-semibold" : "text-muted hover:text-text"
                 }`}
               >
+                {active && <ActiveMark name="dean-tab" className="bg-brand absolute inset-x-0 -bottom-0.5 h-0.5" />}
                 {/* На телефоне три вкладки с иконками не помещаются в 360 px: остаются подписи. */}
                 <Icon className="hidden size-4 shrink-0 sm:block" aria-hidden="true" />
                 {label}

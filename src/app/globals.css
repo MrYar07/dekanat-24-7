@@ -530,3 +530,134 @@ dd {
     animation: sheet-in 0.3s ease-out both;
   }
 }
+
+/* Отклик на наведение: цвет ссылок и кнопок меняется плавно, а не скачком.
+   В слое base, чтобы собственный transition-[…] у кнопки (components/ui/button.tsx) был сильнее. */
+@layer base {
+  a,
+  button,
+  summary,
+  label {
+    transition-property: color, background-color, border-color, text-decoration-color, opacity;
+    transition-duration: 0.15s;
+    transition-timing-function: ease-out;
+  }
+}
+
+/* Смена страницы (components/page-transition.tsx): старая гаснет быстро, новая проявляется.
+   Шапка и меню не мигают — общий снимок страницы не анимируется, движется только содержимое. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+::view-transition-old(.page-out) {
+  animation: page-out 0.1s ease-in both;
+}
+::view-transition-new(.page-in) {
+  animation: fade-in 0.2s ease-out 0.05s both;
+}
+/* Метка активного раздела переезжает на новый пункт меню. */
+::view-transition-group(.tab-slide) {
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+/* Закладка на обложке широкая и едет поверх соседних пунктов. Подписи и значки снимаются отдельно
+   и лежат выше неё, иначе на долю секунды закладка их закрывает. */
+.nav-item > :not(.nav-mark) {
+  view-transition-name: match-element;
+  view-transition-class: nav-label;
+}
+::view-transition-group(.nav-label) {
+  z-index: 1;
+}
+/* Плавающие кнопка «Путеводитель» и плашки не гаснут вместе со старой страницей. */
+.float-layer {
+  view-transition-name: match-element;
+  view-transition-class: float;
+}
+::view-transition-group(.float) {
+  z-index: 2;
+}
+/* Сообщение об ошибке появляется, а не выскакивает. */
+[role="alert"] {
+  animation: fade-in 0.2s ease-out both;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Новая страница чуть поднимается на место. */
+  @keyframes page-in {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+    }
+  }
+  ::view-transition-new(.page-in) {
+    animation-name: page-in;
+    animation-duration: 0.25s;
+    animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  /* Значок темы меняется поворотом: луна уходит, солнце встаёт. */
+  @keyframes icon-swap {
+    from {
+      opacity: 0;
+      rotate: -90deg;
+      scale: 0.5;
+    }
+  }
+  .theme-toggle svg {
+    animation: icon-swap 0.35s cubic-bezier(0.2, 0, 0, 1) both;
+  }
+
+  /* Активный раздел в нижнем меню: значок коротко «отвечает» на нажатие. */
+  @keyframes tab-pop {
+    40% {
+      scale: 1.15;
+    }
+  }
+  [aria-current="page"] > .tab-icon {
+    animation: tab-pop 0.3s cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  /* Счётчик непрочитанных подпрыгивает, когда число меняется. */
+  @keyframes badge-pop {
+    0% {
+      scale: 0.4;
+      opacity: 0;
+    }
+    60% {
+      scale: 1.15;
+      opacity: 1;
+    }
+  }
+  .badge-pop {
+    animation: badge-pop 0.35s cubic-bezier(0.2, 0, 0, 1) both;
+  }
+
+  [role="alert"] {
+    animation-name: sheet-in;
+  }
+}
+
+/* Версия для слабовидящих: только проявление, без поворотов и сдвигов. */
+html[data-a11y] .theme-toggle svg,
+html[data-a11y] [aria-current="page"] > .tab-icon,
+html[data-a11y] .badge-pop {
+  animation: none;
+}
+html[data-a11y]::view-transition-new(.page-in) {
+  animation: fade-in 0.2s ease-out both;
+}
+/* «Поменьше анимации»: смена страницы и переезд метки — мгновенно. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

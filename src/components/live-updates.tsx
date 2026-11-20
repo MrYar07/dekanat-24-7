@@ -74,7 +74,7 @@ export function LiveUpdates() {
       className="pointer-events-none fixed inset-x-4 bottom-24 z-30 flex justify-center md:inset-x-auto md:right-6 md:bottom-6"
     >
       {toast && !onFeed && (
-        <div className="border-border bg-surface pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border p-3 shadow-lg">
+        <div className="float-layer sheet-in border-border bg-surface pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-xl border p-3 shadow-lg">
           <Bell className="text-brand mt-0.5 size-5 shrink-0" aria-hidden="true" />
           {/* Обычная ссылка: переход отмечает уведомление прочитанным. */}
           <a href={`/notifications/${toast.id}`} className="min-w-0 flex-1 text-sm">

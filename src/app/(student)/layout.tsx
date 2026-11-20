@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bell, MessageCircleQuestion } from "lucide-react";
 import { Cover, CoverBar } from "@/components/cover";
 import { LiveUpdates } from "@/components/live-updates";
+import { PageTransition } from "@/components/page-transition";
 import { StudentNav } from "@/components/nav";
 import { A11yToggle } from "@/components/a11y";
 import { ThemeToggle } from "@/components/theme";
@@ -39,8 +40,9 @@ export default async function StudentLayout({ children }: { children: React.Reac
           <Bell className="size-6" aria-hidden="true" />
           {unread > 0 && (
             <span
+              key={unread}
               aria-hidden="true"
-              className="bg-cover-ink text-cover absolute top-0.5 right-0.5 grid min-w-[1.125rem] place-items-center rounded-full px-1 text-[0.6875rem] leading-[1.125rem] font-bold tabular-nums"
+              className="badge-pop bg-cover-ink text-cover absolute top-0.5 right-0.5 grid min-w-[1.125rem] place-items-center rounded-full px-1 text-[0.6875rem] leading-[1.125rem] font-bold tabular-nums"
             >
               {unread > 9 ? "9+" : unread}
             </span>
@@ -50,7 +52,7 @@ export default async function StudentLayout({ children }: { children: React.Reac
 
       <div className="min-w-0 flex-1">
         <main id="main" className="mx-auto w-full max-w-4xl px-4 pt-5 pb-28 md:px-10 md:pt-8 md:pb-10">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
       <StudentNav />
