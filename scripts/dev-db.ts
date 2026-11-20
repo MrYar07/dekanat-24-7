@@ -1,5 +1,7 @@
 // Локальный PostgreSQL для разработки без Docker.
 // Данные лежат на системном диске: PostgreSQL не работает надёжно на exFAT.
+// Не в AppData: приложения из MSIX-пакетов (например, терминал внутри них) видят там
+// свою подменённую копию папки, и две копии базы смешиваются — кластер не стартует.
 import "dotenv/config";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -7,9 +9,7 @@ import { homedir } from "node:os";
 import EmbeddedPostgres from "embedded-postgres";
 
 const url = new URL(process.env.DATABASE_URL ?? "");
-const dataDir =
-  process.env.DEV_PG_DIR ??
-  join(process.env.LOCALAPPDATA ?? join(homedir(), ".local", "share"), "dekanat-24-7", "pgdata");
+const dataDir = process.env.DEV_PG_DIR ?? join(homedir(), ".dekanat-24-7", "pgdata");
 
 const pg = new EmbeddedPostgres({
   databaseDir: dataDir,
