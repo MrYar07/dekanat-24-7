@@ -19,3 +19,4 @@ deploy/backups/
 
 # Ролики демо-видео (scripts/record-demo.ts)
 demo-video/
+__pycache__/
